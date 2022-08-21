@@ -4060,7 +4060,7 @@ def _bar(
         z, align = align(values), "zero"
     elif isinstance(align, (float, int)):
         z, align = float(align), "zero"
-    elif not (align == "left" or align == "right" or align == "zero"):
+    elif not align in ("left", "right", "zero"):
         raise ValueError(
             "`align` should be in {'left', 'right', 'mid', 'mean', 'zero'} or be a "
             "value defining the center line or a callable that returns a float"

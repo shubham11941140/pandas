@@ -1675,7 +1675,7 @@ class DataFrame(NDFrame, OpsMixin):
                     data = _from_nested_dict(data)
                 else:
                     data, index = list(data.values()), list(data.keys())
-        elif orient == "columns" or orient == "tight":
+        elif orient in ("columns", "tight"):
             if columns is not None:
                 raise ValueError(f"cannot use columns parameter with orient='{orient}'")
         else:  # pragma: no cover

@@ -50,7 +50,7 @@ def ensure_clean_store(path, mode="a", complevel=None, complib=None, fletcher32=
         yield store
     finally:
         safe_close(store)
-        if mode == "w" or mode == "a":
+        if mode in ("w", "a"):
             safe_remove(path)
 
 

@@ -453,7 +453,7 @@ class SAS7BDATReader(ReaderBase, abc.Iterator):
         # TODO: return here could be made an enum
         index = const.subheader_signature_to_index.get(signature)
         if index is None:
-            f1 = (compression == const.compressed_subheader_id) or (compression == 0)
+            f1 = compression in (const.compressed_subheader_id, 0)
             f2 = ptype == const.compressed_subheader_type
             if (self.compression != b"") and f1 and f2:
                 index = const.SASIndex.data_subheader_index
