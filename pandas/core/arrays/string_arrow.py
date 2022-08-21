@@ -77,7 +77,6 @@ if not pa_version_under1p01:
         "ge": pc.greater_equal,
     }
 
-
 if TYPE_CHECKING:
     from pandas import Series
 
@@ -95,9 +94,8 @@ def _chk_pyarrow_available() -> None:
 # fallback for the ones that pyarrow doesn't yet support
 
 
-class ArrowStringArray(
-    OpsMixin, ArrowExtensionArray, BaseStringArray, ObjectStringArrayMixin
-):
+class ArrowStringArray(OpsMixin, ArrowExtensionArray, BaseStringArray,
+                       ObjectStringArrayMixin):
     """
     Extension array for string data in a ``pyarrow.ChunkedArray``.
 
@@ -148,7 +146,8 @@ class ArrowStringArray(
         elif isinstance(values, pa.ChunkedArray):
             self._data = values
         else:
-            raise ValueError(f"Unsupported type '{type(values)}' for ArrowStringArray")
+            raise ValueError(
+                f"Unsupported type '{type(values)}' for ArrowStringArray")
 
         if not pa.types.is_string(self._data.type):
             raise ValueError(
@@ -156,21 +155,27 @@ class ArrowStringArray(
             )
 
     @classmethod
-    def _from_sequence(cls, scalars, dtype: Dtype | None = None, copy: bool = False):
+    def _from_sequence(cls,
+                       scalars,
+                       dtype: Dtype | None = None,
+                       copy: bool = False):
         from pandas.core.arrays.masked import BaseMaskedArray
 
         _chk_pyarrow_available()
 
         if dtype and not (isinstance(dtype, str) and dtype == "string"):
             dtype = pandas_dtype(dtype)
-            assert isinstance(dtype, StringDtype) and dtype.storage == "pyarrow"
+            assert isinstance(dtype,
+                              StringDtype) and dtype.storage == "pyarrow"
 
         if isinstance(scalars, BaseMaskedArray):
             # avoid costly conversion to object dtype in ensure_string_array and
             # numerical issues with Float32Dtype
             na_values = scalars._mask
             result = scalars._data
-            result = lib.ensure_string_array(result, copy=copy, convert_na_value=False)
+            result = lib.ensure_string_array(result,
+                                             copy=copy,
+                                             convert_na_value=False)
             return cls(pa.array(result, mask=na_values, type=pa.string()))
 
         # convert non-na-likes to str
@@ -178,9 +183,10 @@ class ArrowStringArray(
         return cls(pa.array(result, type=pa.string(), from_pandas=True))
 
     @classmethod
-    def _from_sequence_of_strings(
-        cls, strings, dtype: Dtype | None = None, copy: bool = False
-    ):
+    def _from_sequence_of_strings(cls,
+                                  strings,
+                                  dtype: Dtype | None = None,
+                                  copy: bool = False):
         return cls._from_sequence(strings, dtype=dtype, copy=copy)
 
     @property
@@ -216,11 +222,11 @@ class ArrowStringArray(
         return result
 
     @doc(ExtensionArray.factorize)
-    def factorize(self, na_sentinel: int = -1) -> tuple[np.ndarray, ExtensionArray]:
+    def factorize(self,
+                  na_sentinel: int = -1) -> tuple[np.ndarray, ExtensionArray]:
         encoded = self._data.dictionary_encode()
-        indices = pa.chunked_array(
-            [c.indices for c in encoded.chunks], type=encoded.type.index_type
-        ).to_pandas()
+        indices = pa.chunked_array([c.indices for c in encoded.chunks],
+                                   type=encoded.type.index_type).to_pandas()
         if indices.dtype.kind == "f":
             indices[np.isnan(indices)] = na_sentinel
         indices = indices.astype(np.int64, copy=False)
@@ -237,11 +243,12 @@ class ArrowStringArray(
         ...
 
     @overload
-    def __getitem__(self: ArrowStringArray, item: SequenceIndexer) -> ArrowStringArray:
+    def __getitem__(self: ArrowStringArray,
+                    item: SequenceIndexer) -> ArrowStringArray:
         ...
 
     def __getitem__(
-        self: ArrowStringArray, item: PositionalIndexer
+            self: ArrowStringArray, item: PositionalIndexer
     ) -> ArrowStringArray | ArrowStringScalarOrNAT:
         """Select a subset of self.
 
@@ -276,10 +283,8 @@ class ArrowStringArray(
             elif is_bool_dtype(item.dtype):
                 return type(self)(self._data.filter(item))
             else:
-                raise IndexError(
-                    "Only integers, slices and integer or "
-                    "boolean arrays are valid indices."
-                )
+                raise IndexError("Only integers, slices and integer or "
+                                 "boolean arrays are valid indices.")
         elif isinstance(item, tuple):
             item = unpack_tuple_and_ellipses(item)
 
@@ -295,8 +300,7 @@ class ArrowStringArray(
             # exception message copied from numpy
             raise IndexError(
                 r"only integers, slices (`:`), ellipsis (`...`), numpy.newaxis "
-                r"(`None`) and integer or boolean arrays are valid indices"
-            )
+                r"(`None`) and integer or boolean arrays are valid indices")
         # We are not an array indexer, so maybe e.g. a slice or integer
         # indexer. We dispatch to pyarrow.
         value = self._data[item]
@@ -377,7 +381,7 @@ class ArrowStringArray(
             new_data = [
                 *self._data[0:key].chunks,
                 pa.array([value], type=pa.string()),
-                *self._data[(key + 1) :].chunks,
+                *self._data[(key + 1):].chunks,
             ]
             self._data = pa.chunked_array(new_data)
         else:
@@ -509,8 +513,8 @@ class ArrowStringArray(
             return super().isin(values)
 
         value_set = [
-            pa_scalar.as_py()
-            for pa_scalar in [pa.scalar(value, from_pandas=True) for value in values]
+            pa_scalar.as_py() for pa_scalar in
+            [pa.scalar(value, from_pandas=True) for value in values]
             if pa_scalar.type in (pa.string(), pa.null())
         ]
 
@@ -588,9 +592,11 @@ class ArrowStringArray(
     # error: Cannot determine type of 'na_value'
     _str_na_value = StringDtype.na_value  # type: ignore[has-type]
 
-    def _str_map(
-        self, f, na_value=None, dtype: Dtype | None = None, convert: bool = True
-    ):
+    def _str_map(self,
+                 f,
+                 na_value=None,
+                 dtype: Dtype | None = None,
+                 convert: bool = True):
         # TODO: de-duplicate with StringArray method. This method is moreless copy and
         # paste.
 
@@ -636,10 +642,15 @@ class ArrowStringArray(
 
         elif is_string_dtype(dtype) and not is_object_dtype(dtype):
             # i.e. StringDtype
-            result = lib.map_infer_mask(
-                arr, f, mask.view("uint8"), convert=False, na_value=na_value
-            )
-            result = pa.array(result, mask=mask, type=pa.string(), from_pandas=True)
+            result = lib.map_infer_mask(arr,
+                                        f,
+                                        mask.view("uint8"),
+                                        convert=False,
+                                        na_value=na_value)
+            result = pa.array(result,
+                              mask=mask,
+                              type=pa.string(),
+                              from_pandas=True)
             return type(self)(result)
         else:
             # This is when the result type is object. We reach this when
@@ -648,7 +659,12 @@ class ArrowStringArray(
             # -> We don't know the result type. E.g. `.get` can return anything.
             return lib.map_infer_mask(arr, f, mask.view("uint8"))
 
-    def _str_contains(self, pat, case=True, flags=0, na=np.nan, regex: bool = True):
+    def _str_contains(self,
+                      pat,
+                      case=True,
+                      flags=0,
+                      na=np.nan,
+                      regex: bool = True):
         if flags:
             return super()._str_contains(pat, case, flags, na, regex)
 
@@ -661,7 +677,8 @@ class ArrowStringArray(
             if case:
                 result = pc.match_substring(self._data, pat)
             else:
-                result = pc.match_substring(pc.utf8_upper(self._data), pat.upper())
+                result = pc.match_substring(pc.utf8_upper(self._data),
+                                            pat.upper())
         result = BooleanDtype().__from_arrow__(result)
         if not isna(na):
             result[isna(result)] = bool(na)
@@ -690,22 +707,22 @@ class ArrowStringArray(
         flags: int = 0,
         regex: bool = True,
     ):
-        if (
-            pa_version_under4p0
-            or isinstance(pat, re.Pattern)
-            or callable(repl)
-            or not case
-            or flags
-        ):
+        if (pa_version_under4p0 or isinstance(pat, re.Pattern)
+                or callable(repl) or not case or flags):
             return super()._str_replace(pat, repl, n, case, flags, regex)
 
         func = pc.replace_substring_regex if regex else pc.replace_substring
-        result = func(self._data, pattern=pat, replacement=repl, max_replacements=n)
+        result = func(self._data,
+                      pattern=pat,
+                      replacement=repl,
+                      max_replacements=n)
         return type(self)(result)
 
-    def _str_match(
-        self, pat: str, case: bool = True, flags: int = 0, na: Scalar | None = None
-    ):
+    def _str_match(self,
+                   pat: str,
+                   case: bool = True,
+                   flags: int = 0,
+                   na: Scalar | None = None):
         if pa_version_under4p0:
             return super()._str_match(pat, case, flags, na)
 
@@ -713,9 +730,11 @@ class ArrowStringArray(
             pat = "^" + pat
         return self._str_contains(pat, case, flags, na, regex=True)
 
-    def _str_fullmatch(
-        self, pat, case: bool = True, flags: int = 0, na: Scalar | None = None
-    ):
+    def _str_fullmatch(self,
+                       pat,
+                       case: bool = True,
+                       flags: int = 0,
+                       na: Scalar | None = None):
         if pa_version_under4p0:
             return super()._str_fullmatch(pat, case, flags, na)
 
