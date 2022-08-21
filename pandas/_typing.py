@@ -5,7 +5,6 @@ from datetime import (
     timedelta,
     tzinfo,
 )
-from os import PathLike
 from typing import (
     TYPE_CHECKING,
     Any,
