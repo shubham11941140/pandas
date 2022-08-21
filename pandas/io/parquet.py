@@ -56,8 +56,7 @@ def get_engine(engine: str) -> BaseImpl:
             "pyarrow or fastparquet is required for parquet "
             "support.\n"
             "Trying to import the above resulted in these errors:"
-            f"{error_msgs}"
-        )
+            f"{error_msgs}")
 
     if engine == "pyarrow":
         return PyArrowImpl()
@@ -73,41 +72,38 @@ def _get_path_or_handle(
     storage_options: StorageOptions = None,
     mode: str = "rb",
     is_dir: bool = False,
-) -> tuple[
-    FilePath | ReadBuffer[bytes] | WriteBuffer[bytes], IOHandles[bytes] | None, Any
-]:
+) -> tuple[FilePath | ReadBuffer[bytes] | WriteBuffer[bytes], IOHandles[bytes]
+           | None, Any]:
     """File handling for PyArrow."""
     path_or_handle = stringify_path(path)
     if is_fsspec_url(path_or_handle) and fs is None:
         fsspec = import_optional_dependency("fsspec")
 
-        fs, path_or_handle = fsspec.core.url_to_fs(
-            path_or_handle, **(storage_options or {})
-        )
+        fs, path_or_handle = fsspec.core.url_to_fs(path_or_handle,
+                                                   **(storage_options or {}))
     elif storage_options and (not is_url(path_or_handle) or mode != "rb"):
         # can't write to a remote url
         # without making use of fsspec at the moment
-        raise ValueError("storage_options passed with buffer, or non-supported URL")
+        raise ValueError(
+            "storage_options passed with buffer, or non-supported URL")
 
     handles = None
-    if (
-        not fs
-        and not is_dir
-        and isinstance(path_or_handle, str)
-        and not os.path.isdir(path_or_handle)
-    ):
+    if (not fs and not is_dir and isinstance(path_or_handle, str)
+            and not os.path.isdir(path_or_handle)):
         # use get_handle only when we are very certain that it is not a directory
         # fsspec resources can also point to directories
         # this branch is used for example when reading from non-fsspec URLs
-        handles = get_handle(
-            path_or_handle, mode, is_text=False, storage_options=storage_options
-        )
+        handles = get_handle(path_or_handle,
+                             mode,
+                             is_text=False,
+                             storage_options=storage_options)
         fs = None
         path_or_handle = handles.handle
     return path_or_handle, handles, fs
 
 
 class BaseImpl:
+
     @staticmethod
     def validate_dataframe(df: DataFrame) -> None:
 
@@ -116,23 +112,20 @@ class BaseImpl:
 
         # must have value column names for all index levels (strings only)
         if isinstance(df.columns, MultiIndex):
-            if not all(
-                x.inferred_type in {"string", "empty"} for x in df.columns.levels
-            ):
-                raise ValueError(
-                    """
+            if not all(x.inferred_type in {"string", "empty"}
+                       for x in df.columns.levels):
+                raise ValueError("""
                     parquet must have string column names for all values in
                      each level of the MultiIndex
-                    """
-                )
+                    """)
         else:
             if df.columns.inferred_type not in {"string", "empty"}:
                 raise ValueError("parquet must have string column names")
 
         # index level names must be strings
         valid_names = all(
-            isinstance(name, str) for name in df.index.names if name is not None
-        )
+            isinstance(name, str) for name in df.index.names
+            if name is not None)
         if not valid_names:
             raise ValueError("Index level names must be strings")
 
@@ -144,10 +137,10 @@ class BaseImpl:
 
 
 class PyArrowImpl(BaseImpl):
+
     def __init__(self):
         import_optional_dependency(
-            "pyarrow", extra="pyarrow is required for parquet support."
-        )
+            "pyarrow", extra="pyarrow is required for parquet support.")
 
         # import utils to register the pyarrow extension types
         import pandas.core.arrays._arrow_utils  # noqa:F401
@@ -166,7 +159,9 @@ class PyArrowImpl(BaseImpl):
     ) -> None:
         self.validate_dataframe(df)
 
-        from_pandas_kwargs: dict[str, Any] = {"schema": kwargs.pop("schema", None)}
+        from_pandas_kwargs: dict[str, Any] = {
+            "schema": kwargs.pop("schema", None)
+        }
         if index is not None:
             from_pandas_kwargs["preserve_index"] = index
 
@@ -179,11 +174,9 @@ class PyArrowImpl(BaseImpl):
             mode="wb",
             is_dir=partition_cols is not None,
         )
-        if (
-            isinstance(path_or_handle, io.BufferedWriter)
-            and hasattr(path_or_handle, "name")
-            and isinstance(path_or_handle.name, (str, bytes))
-        ):
+        if (isinstance(path_or_handle, io.BufferedWriter)
+                and hasattr(path_or_handle, "name")
+                and isinstance(path_or_handle.name, (str, bytes))):
             path_or_handle = path_or_handle.name
 
         try:
@@ -198,9 +191,10 @@ class PyArrowImpl(BaseImpl):
                 )
             else:
                 # write to single output file
-                self.api.parquet.write_table(
-                    table, path_or_handle, compression=compression, **kwargs
-                )
+                self.api.parquet.write_table(table,
+                                             path_or_handle,
+                                             compression=compression,
+                                             **kwargs)
         finally:
             if handles is not None:
                 handles.close()
@@ -244,8 +238,8 @@ class PyArrowImpl(BaseImpl):
         )
         try:
             result = self.api.parquet.read_table(
-                path_or_handle, columns=columns, **kwargs
-            ).to_pandas(**to_pandas_kwargs)
+                path_or_handle, columns=columns,
+                **kwargs).to_pandas(**to_pandas_kwargs)
             if manager == "array":
                 result = result._as_manager("array", copy=False)
             return result
@@ -255,12 +249,13 @@ class PyArrowImpl(BaseImpl):
 
 
 class FastParquetImpl(BaseImpl):
+
     def __init__(self):
         # since pandas is a dependency of fastparquet
         # we need to import on first use
         fastparquet = import_optional_dependency(
-            "fastparquet", extra="fastparquet is required for parquet support."
-        )
+            "fastparquet",
+            extra="fastparquet is required for parquet support.")
         self.api = fastparquet
 
     def write(
@@ -281,8 +276,7 @@ class FastParquetImpl(BaseImpl):
         if "partition_on" in kwargs and partition_cols is not None:
             raise ValueError(
                 "Cannot use both partition_on and "
-                "partition_cols. Use partition_cols for partitioning data"
-            )
+                "partition_cols. Use partition_cols for partitioning data")
         elif "partition_on" in kwargs:
             partition_cols = kwargs.pop("partition_on")
 
@@ -296,8 +290,7 @@ class FastParquetImpl(BaseImpl):
 
             # if filesystem is provided by fsspec, file must be opened in 'wb' mode.
             kwargs["open_with"] = lambda path, _: fsspec.open(
-                path, "wb", **(storage_options or {})
-            ).open()
+                path, "wb", **(storage_options or {})).open()
         elif storage_options:
             raise ValueError(
                 "storage_options passed with file object or non-fsspec file path"
@@ -313,9 +306,11 @@ class FastParquetImpl(BaseImpl):
                 **kwargs,
             )
 
-    def read(
-        self, path, columns=None, storage_options: StorageOptions = None, **kwargs
-    ) -> DataFrame:
+    def read(self,
+             path,
+             columns=None,
+             storage_options: StorageOptions = None,
+             **kwargs) -> DataFrame:
         parquet_kwargs: dict[str, Any] = {}
         use_nullable_dtypes = kwargs.pop("use_nullable_dtypes", False)
         if Version(self.api.__version__) >= Version("0.7.1"):
@@ -324,28 +319,27 @@ class FastParquetImpl(BaseImpl):
         if use_nullable_dtypes:
             raise ValueError(
                 "The 'use_nullable_dtypes' argument is not supported for the "
-                "fastparquet engine"
-            )
+                "fastparquet engine")
         path = stringify_path(path)
         handles = None
         if is_fsspec_url(path):
             fsspec = import_optional_dependency("fsspec")
 
             if Version(self.api.__version__) > Version("0.6.1"):
-                parquet_kwargs["fs"] = fsspec.open(
-                    path, "rb", **(storage_options or {})
-                ).fs
+                parquet_kwargs["fs"] = fsspec.open(path, "rb",
+                                                   **(storage_options
+                                                      or {})).fs
             else:
                 parquet_kwargs["open_with"] = lambda path, _: fsspec.open(
-                    path, "rb", **(storage_options or {})
-                ).open()
+                    path, "rb", **(storage_options or {})).open()
         elif isinstance(path, str) and not os.path.isdir(path):
             # use get_handle only when we are very certain that it is not a directory
             # fsspec resources can also point to directories
             # this branch is used for example when reading from non-fsspec URLs
-            handles = get_handle(
-                path, "rb", is_text=False, storage_options=storage_options
-            )
+            handles = get_handle(path,
+                                 "rb",
+                                 is_text=False,
+                                 storage_options=storage_options)
             path = handles.handle
 
         parquet_file = self.api.ParquetFile(path, **parquet_kwargs)
@@ -421,7 +415,8 @@ def to_parquet(
         partition_cols = [partition_cols]
     impl = get_engine(engine)
 
-    path_or_buf: FilePath | WriteBuffer[bytes] = io.BytesIO() if path is None else path
+    path_or_buf: FilePath | WriteBuffer[bytes] = io.BytesIO(
+    ) if path is None else path
 
     impl.write(
         df,

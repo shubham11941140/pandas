@@ -71,7 +71,6 @@ if TYPE_CHECKING:
 else:
     npt: Any = None
 
-
 # array-like
 
 ArrayLike = Union["ExtensionArray", np.ndarray]
@@ -82,18 +81,16 @@ AnyArrayLike = Union[ArrayLike, "Index", "Series"]
 PythonScalar = Union[str, int, float, bool]
 DatetimeLikeScalar = Union["Period", "Timestamp", "Timedelta"]
 PandasScalar = Union["Period", "Timestamp", "Timedelta", "Interval"]
-Scalar = Union[PythonScalar, PandasScalar, np.datetime64, np.timedelta64, datetime]
+Scalar = Union[PythonScalar, PandasScalar, np.datetime64, np.timedelta64,
+               datetime]
 IntStrT = TypeVar("IntStrT", int, str)
-
 
 # timestamp and timedelta convertible types
 
-TimestampConvertibleTypes = Union[
-    "Timestamp", datetime, np.datetime64, int, np.int64, float, str
-]
-TimedeltaConvertibleTypes = Union[
-    "Timedelta", timedelta, np.timedelta64, int, np.int64, float, str
-]
+TimestampConvertibleTypes = Union["Timestamp", datetime, np.datetime64, int,
+                                  np.int64, float, str]
+TimedeltaConvertibleTypes = Union["Timedelta", timedelta, np.timedelta64, int,
+                                  np.int64, float, str]
 Timezone = Union[str, tzinfo]
 
 # NDFrameT is stricter and ensures that the same subclass of NDFrame always is
@@ -112,16 +109,12 @@ JSONSerializable = Optional[Union[PythonScalar, List, Dict]]
 Frequency = Union[str, "DateOffset"]
 Axes = Collection[Any]
 
-RandomState = Union[
-    int,
-    ArrayLike,
-    np.random.Generator,
-    np.random.BitGenerator,
-    np.random.RandomState,
-]
+RandomState = Union[int, ArrayLike, np.random.Generator,
+                    np.random.BitGenerator, np.random.RandomState, ]
 
 # dtypes
-NpDtype = Union[str, np.dtype, type_t[Union[str, float, int, complex, bool, object]]]
+NpDtype = Union[str, np.dtype, type_t[Union[str, float, int, complex, bool,
+                                            object]]]
 Dtype = Union["ExtensionDtype", NpDtype]
 AstypeArg = Union["ExtensionDtype", "npt.DTypeLike"]
 # DtypeArg specifies all allowable dtypes in a functions its dtype argument
@@ -132,9 +125,8 @@ DtypeObj = Union[np.dtype, "ExtensionDtype"]
 ConvertersArg = Dict[Hashable, Callable[[Dtype], Dtype]]
 
 # parse_dates
-ParseDatesArg = Union[
-    bool, List[Hashable], List[List[Hashable]], Dict[Hashable, List[Hashable]]
-]
+ParseDatesArg = Union[bool, List[Hashable], List[List[Hashable]],
+                      Dict[Hashable, List[Hashable]]]
 
 # For functions like rename that convert one label to another
 Renamer = Union[Mapping[Hashable, Any], Callable[[Hashable], Hashable]]
@@ -155,20 +147,9 @@ IndexKeyFunc = Optional[Callable[["Index"], Union["Index", AnyArrayLike]]]
 # types of `func` kwarg for DataFrame.aggregate and Series.aggregate
 AggFuncTypeBase = Union[Callable, str]
 AggFuncTypeDict = Dict[Hashable, Union[AggFuncTypeBase, List[AggFuncTypeBase]]]
-AggFuncType = Union[
-    AggFuncTypeBase,
-    List[AggFuncTypeBase],
-    AggFuncTypeDict,
-]
-AggObjType = Union[
-    "Series",
-    "DataFrame",
-    "GroupBy",
-    "SeriesGroupBy",
-    "DataFrameGroupBy",
-    "BaseWindow",
-    "Resampler",
-]
+AggFuncType = Union[AggFuncTypeBase, List[AggFuncTypeBase], AggFuncTypeDict, ]
+AggObjType = Union["Series", "DataFrame", "GroupBy", "SeriesGroupBy",
+                   "DataFrameGroupBy", "BaseWindow", "Resampler", ]
 
 PythonFuncType = Callable[[Any], Any]
 
@@ -178,6 +159,7 @@ AnyStr_con = TypeVar("AnyStr_con", str, bytes, contravariant=True)
 
 
 class BaseBuffer(Protocol):
+
     @property
     def mode(self) -> str:
         # for _get_filepath_or_buffer
@@ -202,12 +184,14 @@ class BaseBuffer(Protocol):
 
 
 class ReadBuffer(BaseBuffer, Protocol[AnyStr_cov]):
+
     def read(self, __n: int | None = ...) -> AnyStr_cov:
         # for BytesIOWrapper, gzip.GzipFile, bz2.BZ2File
         ...
 
 
 class WriteBuffer(BaseBuffer, Protocol[AnyStr_con]):
+
     def write(self, __b: AnyStr_con) -> Any:
         # for gzip.GzipFile, bz2.BZ2File
         ...
@@ -218,16 +202,19 @@ class WriteBuffer(BaseBuffer, Protocol[AnyStr_con]):
 
 
 class ReadPickleBuffer(ReadBuffer[bytes], Protocol):
+
     def readline(self) -> AnyStr_cov:
         ...
 
 
 class WriteExcelBuffer(WriteBuffer[bytes], Protocol):
+
     def truncate(self, size: int | None = ...) -> int:
         ...
 
 
 class ReadCsvBuffer(ReadBuffer[AnyStr_cov], Protocol):
+
     def __iter__(self) -> Iterator[AnyStr_cov]:
         # for engine=python
         ...
@@ -247,30 +234,25 @@ FilePath = Union[str, "PathLike[str]"]
 # for arbitrary kwargs passed during reading/writing files
 StorageOptions = Optional[Dict[str, Any]]
 
-
 # compression keywords and compression
 CompressionDict = Dict[str, Any]
-CompressionOptions = Optional[
-    Union[Literal["infer", "gzip", "bz2", "zip", "xz", "zstd"], CompressionDict]
-]
+CompressionOptions = Optional[Union[Literal["infer", "gzip", "bz2", "zip",
+                                            "xz", "zstd"], CompressionDict]]
 
 # types in DataFrameFormatter
-FormattersType = Union[
-    List[Callable], Tuple[Callable, ...], Mapping[Union[str, int], Callable]
-]
+FormattersType = Union[List[Callable], Tuple[Callable, ...],
+                       Mapping[Union[str, int], Callable]]
 ColspaceType = Mapping[Hashable, Union[str, int]]
 FloatFormatType = Union[str, Callable, "EngFormatter"]
-ColspaceArgType = Union[
-    str, int, Sequence[Union[str, int]], Mapping[Hashable, Union[str, int]]
-]
+ColspaceArgType = Union[str, int, Sequence[Union[str, int]],
+                        Mapping[Hashable, Union[str, int]]]
 
 # Arguments for fillna()
 FillnaOptions = Literal["backfill", "bfill", "ffill", "pad"]
 
 # internals
-Manager = Union[
-    "ArrayManager", "SingleArrayManager", "BlockManager", "SingleBlockManager"
-]
+Manager = Union["ArrayManager", "SingleArrayManager", "BlockManager",
+                "SingleBlockManager"]
 SingleManager = Union["SingleArrayManager", "SingleBlockManager"]
 Manager2D = Union["ArrayManager", "BlockManager"]
 
@@ -291,7 +273,8 @@ PositionalIndexer = Union[ScalarIndexer, SequenceIndexer]
 PositionalIndexerTuple = Tuple[PositionalIndexer, PositionalIndexer]
 PositionalIndexer2D = Union[PositionalIndexer, PositionalIndexerTuple]
 if TYPE_CHECKING:
-    TakeIndexer = Union[Sequence[int], Sequence[np.integer], npt.NDArray[np.integer]]
+    TakeIndexer = Union[Sequence[int], Sequence[np.integer],
+                        npt.NDArray[np.integer]]
 else:
     TakeIndexer = Any
 
