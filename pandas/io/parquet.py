@@ -148,7 +148,6 @@ class PyArrowImpl(BaseImpl):
         import_optional_dependency(
             "pyarrow", extra="pyarrow is required for parquet support."
         )
-        import pyarrow.parquet
 
         # import utils to register the pyarrow extension types
         import pandas.core.arrays._arrow_utils  # noqa:F401

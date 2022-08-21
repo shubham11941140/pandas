@@ -42,9 +42,6 @@ from pandas._config import (
     options,
 )
 
-# let init-time option registration happen
-import pandas.core.config_init
-
 from pandas.core.api import (
     # dtype
     Int8Dtype,
