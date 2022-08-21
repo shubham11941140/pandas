@@ -167,23 +167,23 @@ class DatetimeIndexOpsMixin(NDArrayBackedExtensionIndex):
         header = []
         if name:
             header.append(
-                ibase.pprint_thing(self.name, escape_chars=("\t", "\r", "\n"))
-                if self.name is not None
-                else ""
-            )
+                ibase.pprint_thing(self.name, escape_chars=(
+                    "\t", "\r", "\n")) if self.name is not None else "")
 
         if formatter is not None:
             return header + list(self.map(formatter))
 
-        return self._format_with_header(header, na_rep=na_rep, date_format=date_format)
+        return self._format_with_header(header,
+                                        na_rep=na_rep,
+                                        date_format=date_format)
 
-    def _format_with_header(
-        self, header: list[str], na_rep: str = "NaT", date_format: str | None = None
-    ) -> list[str]:
+    def _format_with_header(self,
+                            header: list[str],
+                            na_rep: str = "NaT",
+                            date_format: str | None = None) -> list[str]:
         # matches base class except for whitespace padding and date_format
         return header + list(
-            self._format_native_types(na_rep=na_rep, date_format=date_format)
-        )
+            self._format_native_types(na_rep=na_rep, date_format=date_format))
 
     @property
     def _formatter_func(self):
@@ -259,9 +259,8 @@ class DatetimeIndexOpsMixin(NDArrayBackedExtensionIndex):
 
         if self.is_monotonic_increasing:
 
-            if len(self) and (
-                (t1 < self[0] and t2 < self[0]) or (t1 > self[-1] and t2 > self[-1])
-            ):
+            if len(self) and ((t1 < self[0] and t2 < self[0]) or
+                              (t1 > self[-1] and t2 > self[-1])):
                 # we are out of range
                 raise KeyError
 
@@ -432,9 +431,9 @@ class DatetimeTimedeltaMixin(DatetimeIndexOpsMixin):
         # This raising is incorrect, as 'on_freq' is incorrect. This will
         # be fixed by GH#41493
         res_values = res_i8.values.view(self._data._ndarray.dtype)
-        result = type(self._data)._simple_new(
-            res_values, dtype=self.dtype, freq=new_freq
-        )
+        result = type(self._data)._simple_new(res_values,
+                                              dtype=self.dtype,
+                                              freq=new_freq)
         return self._wrap_setop_result(other, result)
 
     def _range_intersect(self, other, sort):
@@ -637,8 +636,7 @@ class DatetimeTimedeltaMixin(DatetimeIndexOpsMixin):
                     # type "Union[slice, ndarray]", variable has type
                     # "Union[int, slice, Sequence[int]]")
                     loc = lib.maybe_indices_to_slice(  # type: ignore[assignment]
-                        np.asarray(loc, dtype=np.intp), len(self)
-                    )
+                        np.asarray(loc, dtype=np.intp), len(self))
                 if isinstance(loc, slice) and loc.step in (1, None):
                     if loc.start in (0, None) or loc.stop in (len(self), None):
                         freq = self.freq
@@ -689,13 +687,18 @@ class DatetimeTimedeltaMixin(DatetimeIndexOpsMixin):
     # NDArray-Like Methods
 
     @Appender(_index_shared_docs["take"] % _index_doc_kwargs)
-    def take(self, indices, axis=0, allow_fill=True, fill_value=None, **kwargs):
+    def take(self,
+             indices,
+             axis=0,
+             allow_fill=True,
+             fill_value=None,
+             **kwargs):
         nv.validate_take((), kwargs)
         indices = np.asarray(indices, dtype=np.intp)
 
-        result = NDArrayBackedExtensionIndex.take(
-            self, indices, axis, allow_fill, fill_value, **kwargs
-        )
+        result = NDArrayBackedExtensionIndex.take(self, indices, axis,
+                                                  allow_fill, fill_value,
+                                                  **kwargs)
 
         maybe_slice = lib.maybe_indices_to_slice(indices, len(self))
         if isinstance(maybe_slice, slice):

@@ -47,26 +47,20 @@ def test_union_different_types(index_flat, index_flat2, request):
     idx1 = index_flat
     idx2 = index_flat2
 
-    if (
-        not idx1.is_unique
-        and not idx2.is_unique
-        and idx1.dtype.kind == "i"
-        and idx2.dtype.kind == "b"
-    ) or (
-        not idx2.is_unique
-        and not idx1.is_unique
-        and idx2.dtype.kind == "i"
-        and idx1.dtype.kind == "b"
-    ):
+    if (not idx1.is_unique and not idx2.is_unique and idx1.dtype.kind == "i"
+            and idx2.dtype.kind == "b") or (not idx2.is_unique
+                                            and not idx1.is_unique
+                                            and idx2.dtype.kind == "i"
+                                            and idx1.dtype.kind == "b"):
         # Each condition had idx[1|2].is_monotonic_decreasing
         # but failed when e.g.
         # idx1 = Index(
         # [True, True, True, True, True, True, True, True, False, False], dtype='bool'
         # )
         # idx2 = Int64Index([0, 0, 1, 1, 2, 2], dtype='int64')
-        mark = pytest.mark.xfail(
-            reason="GH#44000 True==1", raises=ValueError, strict=False
-        )
+        mark = pytest.mark.xfail(reason="GH#44000 True==1",
+                                 raises=ValueError,
+                                 strict=False)
         request.node.add_marker(mark)
 
     common_dtype = find_common_type([idx1.dtype, idx2.dtype])
@@ -74,19 +68,12 @@ def test_union_different_types(index_flat, index_flat2, request):
     warn = None
     if not len(idx1) or not len(idx2):
         pass
-    elif (
-        idx1.dtype.kind == "c"
-        and (
-            idx2.dtype.kind not in ["i", "u", "f", "c"]
-            or not isinstance(idx2.dtype, np.dtype)
-        )
-    ) or (
-        idx2.dtype.kind == "c"
-        and (
-            idx1.dtype.kind not in ["i", "u", "f", "c"]
-            or not isinstance(idx1.dtype, np.dtype)
-        )
-    ):
+    elif (idx1.dtype.kind == "c" and
+          (idx2.dtype.kind not in ["i", "u", "f", "c"]
+           or not isinstance(idx2.dtype, np.dtype))) or (
+               idx2.dtype.kind == "c" and
+               (idx1.dtype.kind not in ["i", "u", "f", "c"]
+                or not isinstance(idx1.dtype, np.dtype))):
         # complex objects non-sortable
         warn = RuntimeWarning
 
@@ -152,7 +139,8 @@ def test_compatible_inconsistent_pairs(idx_fact1, idx_fact2):
         ("Period[D]", "float64", "object"),
     ],
 )
-@pytest.mark.parametrize("names", [("foo", "foo", "foo"), ("foo", "bar", None)])
+@pytest.mark.parametrize("names", [("foo", "foo", "foo"),
+                                   ("foo", "bar", None)])
 def test_union_dtypes(left, right, expected, names):
     left = pandas_dtype(left)
     right = pandas_dtype(right)
@@ -195,8 +183,8 @@ class TestSetOps:
     # Set operation tests shared by all indexes in the `index` fixture
     @pytest.mark.parametrize("case", [0.5, "xxx"])
     @pytest.mark.parametrize(
-        "method", ["intersection", "union", "difference", "symmetric_difference"]
-    )
+        "method",
+        ["intersection", "union", "difference", "symmetric_difference"])
     def test_set_ops_error_cases(self, case, method, index):
         # non-iterable input
         msg = "Input must be Index or array-like"
@@ -314,7 +302,8 @@ class TestSetOps:
             (None, None, None),
         ],
     )
-    def test_corner_union(self, index_flat_unique, fname, sname, expected_name):
+    def test_corner_union(self, index_flat_unique, fname, sname,
+                          expected_name):
         # GH#9943, GH#9862
         # Test unions with various name combinations
         # Do not test MultiIndex or repeats
@@ -358,7 +347,8 @@ class TestSetOps:
             (None, None, None),
         ],
     )
-    def test_union_unequal(self, index_flat_unique, fname, sname, expected_name):
+    def test_union_unequal(self, index_flat_unique, fname, sname,
+                           expected_name):
         index = index_flat_unique
 
         # test copy.union(subset) - need sort for unicode and string
@@ -378,7 +368,8 @@ class TestSetOps:
             (None, None, None),
         ],
     )
-    def test_corner_intersect(self, index_flat_unique, fname, sname, expected_name):
+    def test_corner_intersect(self, index_flat_unique, fname, sname,
+                              expected_name):
         # GH#35847
         # Test intersections with various name combinations
         index = index_flat_unique
@@ -421,7 +412,8 @@ class TestSetOps:
             (None, None, None),
         ],
     )
-    def test_intersect_unequal(self, index_flat_unique, fname, sname, expected_name):
+    def test_intersect_unequal(self, index_flat_unique, fname, sname,
+                               expected_name):
         index = index_flat_unique
 
         # test copy.intersection(subset) - need sort for unicode and string
@@ -485,8 +477,7 @@ class TestSetOps:
 
 
 @pytest.mark.parametrize(
-    "method", ["intersection", "union", "difference", "symmetric_difference"]
-)
+    "method", ["intersection", "union", "difference", "symmetric_difference"])
 def test_setop_with_categorical(index_flat, sort, method):
     # MultiIndex tested separately in tests.indexes.multi.test_setops
     index = index_flat
@@ -684,9 +675,8 @@ class TestSetOpsUnsorted:
         "first_name,second_name,expected_name",
         [("A", "A", "A"), ("A", "B", None), (None, "B", None)],
     )
-    def test_intersection_name_preservation2(
-        self, index, first_name, second_name, expected_name, sort
-    ):
+    def test_intersection_name_preservation2(self, index, first_name,
+                                             second_name, expected_name, sort):
         first = index[5:20]
         second = index[:10]
         first.name = first_name
@@ -752,8 +742,10 @@ class TestSetOpsUnsorted:
         assert (union is first) is (not sort)
 
     @pytest.mark.parametrize("index", ["string"], indirect=True)
-    @pytest.mark.parametrize("second_name,expected", [(None, None), ("name", "name")])
-    def test_difference_name_preservation(self, index, second_name, expected, sort):
+    @pytest.mark.parametrize("second_name,expected", [(None, None),
+                                                      ("name", "name")])
+    def test_difference_name_preservation(self, index, second_name, expected,
+                                          sort):
         first = index[5:20]
         second = index[:10]
         answer = index[10:20]
@@ -864,6 +856,8 @@ class TestSetOpsUnsorted:
         assert tm.equalContents(result, expected)
         assert result.name == "index1"
 
-        result = index1.symmetric_difference(index2, result_name="new_name", sort=sort)
+        result = index1.symmetric_difference(index2,
+                                             result_name="new_name",
+                                             sort=sort)
         assert tm.equalContents(result, expected)
         assert result.name == "new_name"

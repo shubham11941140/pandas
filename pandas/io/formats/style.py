@@ -50,7 +50,8 @@ from pandas.core.shared_docs import _shared_docs
 
 from pandas.io.formats.format import save_to_buffer
 
-jinja2 = import_optional_dependency("jinja2", extra="DataFrame.style requires jinja2.")
+jinja2 = import_optional_dependency("jinja2",
+                                    extra="DataFrame.style requires jinja2.")
 
 from pandas.io.formats.style_render import (
     CSSProperties,
@@ -358,12 +359,12 @@ class Styler(StylerRenderer):
         if not isinstance(other, Styler):
             raise TypeError("`other` must be of type `Styler`")
         if not self.data.columns.equals(other.data.columns):
-            raise ValueError("`other.data` must have same columns as `Styler.data`")
+            raise ValueError(
+                "`other.data` must have same columns as `Styler.data`")
         if not self.data.index.nlevels == other.data.index.nlevels:
             raise ValueError(
                 "number of index levels must be same in `other` "
-                "as in `Styler`. See documentation for suggestions."
-            )
+                "as in `Styler`. See documentation for suggestions.")
         self.concatenated = other
         return self
 
@@ -527,8 +528,7 @@ class Styler(StylerRenderer):
             # tooltips not optimised for individual cell check. requires reasonable
             # redesign and more extensive code for a feature that might be rarely used.
             raise NotImplementedError(
-                "Tooltips can only render with 'cell_ids' is True."
-            )
+                "Tooltips can only render with 'cell_ids' is True.")
         if not ttips.index.is_unique or not ttips.columns.is_unique:
             raise KeyError(
                 "Tooltips render only if `ttips` has unique index and columns."
@@ -1058,18 +1058,19 @@ class Styler(StylerRenderer):
 
         .. figure:: ../../_static/style/latex_stocks.png
         """
-        obj = self._copy(deepcopy=True)  # manipulate table_styles on obj, not self
+        obj = self._copy(
+            deepcopy=True)  # manipulate table_styles on obj, not self
 
-        table_selectors = (
-            [style["selector"] for style in self.table_styles]
-            if self.table_styles is not None
-            else []
-        )
+        table_selectors = ([style["selector"] for style in self.table_styles]
+                           if self.table_styles is not None else [])
 
         if column_format is not None:
             # add more recent setting to table_styles
             obj.set_table_styles(
-                [{"selector": "column_format", "props": f":{column_format}"}],
+                [{
+                    "selector": "column_format",
+                    "props": f":{column_format}"
+                }],
                 overwrite=False,
             )
         elif "column_format" in table_selectors:
@@ -1085,17 +1086,22 @@ class Styler(StylerRenderer):
                 column_format += "" if self.hide_index_[level] else "l"
             for ci, _ in enumerate(self.data.columns):
                 if ci not in self.hidden_columns:
-                    column_format += (
-                        ("r" if not siunitx else "S") if ci in numeric_cols else "l"
-                    )
+                    column_format += (("r" if not siunitx else "S")
+                                      if ci in numeric_cols else "l")
             obj.set_table_styles(
-                [{"selector": "column_format", "props": f":{column_format}"}],
+                [{
+                    "selector": "column_format",
+                    "props": f":{column_format}"
+                }],
                 overwrite=False,
             )
 
         if position:
             obj.set_table_styles(
-                [{"selector": "position", "props": f":{position}"}],
+                [{
+                    "selector": "position",
+                    "props": f":{position}"
+                }],
                 overwrite=False,
             )
 
@@ -1104,31 +1110,47 @@ class Styler(StylerRenderer):
                 raise ValueError(
                     "`position_float` cannot be used in 'longtable' `environment`"
                 )
-            if position_float not in ["raggedright", "raggedleft", "centering"]:
-                raise ValueError(
-                    f"`position_float` should be one of "
-                    f"'raggedright', 'raggedleft', 'centering', "
-                    f"got: '{position_float}'"
-                )
+            if position_float not in [
+                    "raggedright", "raggedleft", "centering"
+            ]:
+                raise ValueError(f"`position_float` should be one of "
+                                 f"'raggedright', 'raggedleft', 'centering', "
+                                 f"got: '{position_float}'")
             obj.set_table_styles(
-                [{"selector": "position_float", "props": f":{position_float}"}],
+                [{
+                    "selector": "position_float",
+                    "props": f":{position_float}"
+                }],
                 overwrite=False,
             )
 
-        hrules = get_option("styler.latex.hrules") if hrules is None else hrules
+        hrules = get_option(
+            "styler.latex.hrules") if hrules is None else hrules
         if hrules:
             obj.set_table_styles(
                 [
-                    {"selector": "toprule", "props": ":toprule"},
-                    {"selector": "midrule", "props": ":midrule"},
-                    {"selector": "bottomrule", "props": ":bottomrule"},
+                    {
+                        "selector": "toprule",
+                        "props": ":toprule"
+                    },
+                    {
+                        "selector": "midrule",
+                        "props": ":midrule"
+                    },
+                    {
+                        "selector": "bottomrule",
+                        "props": ":bottomrule"
+                    },
                 ],
                 overwrite=False,
             )
 
         if label:
             obj.set_table_styles(
-                [{"selector": "label", "props": f":{{{label.replace(':', '§')}}}"}],
+                [{
+                    "selector": "label",
+                    "props": f":{{{label.replace(':', '§')}}}"
+                }],
                 overwrite=False,
             )
 
@@ -1140,8 +1162,10 @@ class Styler(StylerRenderer):
         if sparse_columns is None:
             sparse_columns = get_option("styler.sparse.columns")
         environment = environment or get_option("styler.latex.environment")
-        multicol_align = multicol_align or get_option("styler.latex.multicol_align")
-        multirow_align = multirow_align or get_option("styler.latex.multirow_align")
+        multicol_align = multicol_align or get_option(
+            "styler.latex.multicol_align")
+        multirow_align = multirow_align or get_option(
+            "styler.latex.multirow_align")
         latex = obj._render_latex(
             sparse_index=sparse_index,
             sparse_columns=sparse_columns,
@@ -1154,9 +1178,9 @@ class Styler(StylerRenderer):
         )
 
         encoding = encoding or get_option("styler.render.encoding")
-        return save_to_buffer(
-            latex, buf=buf, encoding=None if buf is None else encoding
-        )
+        return save_to_buffer(latex,
+                              buf=buf,
+                              encoding=None if buf is None else encoding)
 
     @Substitution(buf=buf, encoding=encoding)
     def to_html(
@@ -1252,7 +1276,8 @@ class Styler(StylerRenderer):
         --------
         DataFrame.to_html: Write a DataFrame to a file, buffer or string in HTML format.
         """
-        obj = self._copy(deepcopy=True)  # manipulate table_styles on obj, not self
+        obj = self._copy(
+            deepcopy=True)  # manipulate table_styles on obj, not self
 
         if table_uuid:
             obj.set_uuid(table_uuid)
@@ -1266,9 +1291,11 @@ class Styler(StylerRenderer):
             sparse_columns = get_option("styler.sparse.columns")
 
         if bold_headers:
-            obj.set_table_styles(
-                [{"selector": "th", "props": "font-weight: bold;"}], overwrite=False
-            )
+            obj.set_table_styles([{
+                "selector": "th",
+                "props": "font-weight: bold;"
+            }],
+                overwrite=False)
 
         if caption is not None:
             obj.set_caption(caption)
@@ -1286,9 +1313,9 @@ class Styler(StylerRenderer):
             **kwargs,
         )
 
-        return save_to_buffer(
-            html, buf=buf, encoding=(encoding if buf is not None else None)
-        )
+        return save_to_buffer(html,
+                              buf=buf,
+                              encoding=(encoding if buf is not None else None))
 
     @Substitution(buf=buf, encoding=encoding)
     def to_string(
@@ -1351,9 +1378,9 @@ class Styler(StylerRenderer):
             max_cols=max_columns,
             delimiter=delimiter,
         )
-        return save_to_buffer(
-            text, buf=buf, encoding=(encoding if buf is not None else None)
-        )
+        return save_to_buffer(text,
+                              buf=buf,
+                              encoding=(encoding if buf is not None else None))
 
     def set_td_classes(self, classes: DataFrame) -> Styler:
         """
@@ -1445,10 +1472,8 @@ class Styler(StylerRenderer):
             matter.
         """
         if not self.index.is_unique or not self.columns.is_unique:
-            raise KeyError(
-                "`Styler.apply` and `.applymap` are not compatible "
-                "with non-unique index or columns."
-            )
+            raise KeyError("`Styler.apply` and `.applymap` are not compatible "
+                           "with non-unique index or columns.")
 
         for cn in attrs.columns:
             j = self.columns.get_loc(cn)
@@ -1513,7 +1538,8 @@ class Styler(StylerRenderer):
         """
         # GH 40675
         styler = Styler(
-            self.data,  # populates attributes 'data', 'columns', 'index' as shallow
+            self.
+            data,  # populates attributes 'data', 'columns', 'index' as shallow
         )
         shallow = [  # simple string or boolean immutables
             "hide_index_",
@@ -1571,7 +1597,8 @@ class Styler(StylerRenderer):
         # create default GH 40675
         clean_copy = Styler(self.data, uuid=self.uuid)
         clean_attrs = [a for a in clean_copy.__dict__ if not callable(a)]
-        self_attrs = [a for a in self.__dict__ if not callable(a)]  # maybe more attrs
+        self_attrs = [a for a in self.__dict__
+                      if not callable(a)]  # maybe more attrs
         for attr in clean_attrs:
             setattr(self, attr, getattr(clean_copy, attr))
         for attr in set(self_attrs).difference(clean_attrs):
@@ -1595,15 +1622,15 @@ class Styler(StylerRenderer):
                 if not isinstance(result, np.ndarray):
                     raise TypeError(
                         f"Function {repr(func)} must return a DataFrame or ndarray "
-                        f"when passed to `Styler.apply` with axis=None"
-                    )
+                        f"when passed to `Styler.apply` with axis=None")
                 if not (data.shape == result.shape):
                     raise ValueError(
                         f"Function {repr(func)} returned ndarray with wrong shape.\n"
                         f"Result has shape: {result.shape}\n"
-                        f"Expected shape: {data.shape}"
-                    )
-                result = DataFrame(result, index=data.index, columns=data.columns)
+                        f"Expected shape: {data.shape}")
+                result = DataFrame(result,
+                                   index=data.index,
+                                   columns=data.columns)
         else:
             axis = self.data._get_axis_number(axis)
             if axis == 0:
@@ -1615,8 +1642,7 @@ class Styler(StylerRenderer):
             raise ValueError(
                 f"Function {repr(func)} resulted in the apply method collapsing to a "
                 f"Series.\nUsually, this is the result of the function returning a "
-                f"single value, instead of list-like."
-            )
+                f"single value, instead of list-like.")
         msg = (
             f"Function {repr(func)} created invalid {{0}} labels.\nUsually, this is "
             f"the result of the function returning a "
@@ -1625,14 +1651,14 @@ class Styler(StylerRenderer):
             f"cannot be mapped to labels, possibly due to applying the function along "
             f"the wrong axis.\n"
             f"Result {{0}} has shape: {{1}}\n"
-            f"Expected {{0}} shape:   {{2}}"
-        )
+            f"Expected {{0}} shape:   {{2}}")
         if not all(result.index.isin(data.index)):
-            raise ValueError(msg.format("index", result.index.shape, data.index.shape))
+            raise ValueError(
+                msg.format("index", result.index.shape, data.index.shape))
         if not all(result.columns.isin(data.columns)):
             raise ValueError(
-                msg.format("columns", result.columns.shape, data.columns.shape)
-            )
+                msg.format("columns", result.columns.shape,
+                           data.columns.shape))
         self._update_ctx(result)
         return self
 
@@ -1724,9 +1750,8 @@ class Styler(StylerRenderer):
         See `Table Visualization <../../user_guide/style.ipynb>`_ user guide for
         more details.
         """
-        self._todo.append(
-            (lambda instance: getattr(instance, "_apply"), (func, axis, subset), kwargs)
-        )
+        self._todo.append((lambda instance: getattr(instance, "_apply"),
+                           (func, axis, subset), kwargs))
         return self
 
     def _apply_index(
@@ -1826,13 +1851,11 @@ class Styler(StylerRenderer):
 
         .. figure:: ../../_static/style/appmaphead2.png
         """
-        self._todo.append(
-            (
-                lambda instance: getattr(instance, "_apply_index"),
-                (func, axis, level, "apply"),
-                kwargs,
-            )
-        )
+        self._todo.append((
+            lambda instance: getattr(instance, "_apply_index"),
+            (func, axis, level, "apply"),
+            kwargs,
+        ))
         return self
 
     @doc(
@@ -1855,18 +1878,17 @@ class Styler(StylerRenderer):
         level: Level | list[Level] | None = None,
         **kwargs,
     ) -> Styler:
-        self._todo.append(
-            (
-                lambda instance: getattr(instance, "_apply_index"),
-                (func, axis, level, "applymap"),
-                kwargs,
-            )
-        )
+        self._todo.append((
+            lambda instance: getattr(instance, "_apply_index"),
+            (func, axis, level, "applymap"),
+            kwargs,
+        ))
         return self
 
-    def _applymap(
-        self, func: Callable, subset: Subset | None = None, **kwargs
-    ) -> Styler:
+    def _applymap(self,
+                  func: Callable,
+                  subset: Subset | None = None,
+                  **kwargs) -> Styler:
         func = partial(func, **kwargs)  # applymap doesn't take kwargs?
         if subset is None:
             subset = IndexSlice[:]
@@ -1876,9 +1898,10 @@ class Styler(StylerRenderer):
         return self
 
     @Substitution(subset=subset)
-    def applymap(
-        self, func: Callable, subset: Subset | None = None, **kwargs
-    ) -> Styler:
+    def applymap(self,
+                 func: Callable,
+                 subset: Subset | None = None,
+                 **kwargs) -> Styler:
         """
         Apply a CSS-styling function elementwise.
 
@@ -1932,9 +1955,8 @@ class Styler(StylerRenderer):
         See `Table Visualization <../../user_guide/style.ipynb>`_ user guide for
         more details.
         """
-        self._todo.append(
-            (lambda instance: getattr(instance, "_applymap"), (func, subset), kwargs)
-        )
+        self._todo.append((lambda instance: getattr(instance, "_applymap"),
+                           (func, subset), kwargs))
         return self
 
     @Substitution(subset=subset)
@@ -2170,12 +2192,10 @@ class Styler(StylerRenderer):
         """
         self._todo.extend(styles.get("apply", []))
         table_attributes: str = self.table_attributes or ""
-        obj_table_atts: str = (
-            ""
-            if styles.get("table_attributes") is None
-            else str(styles.get("table_attributes"))
-        )
-        self.set_table_attributes((table_attributes + " " + obj_table_atts).strip())
+        obj_table_atts: str = ("" if styles.get("table_attributes") is None
+                               else str(styles.get("table_attributes")))
+        self.set_table_attributes(
+            (table_attributes + " " + obj_table_atts).strip())
         if styles.get("table_styles"):
             self.set_table_styles(styles.get("table_styles"), overwrite=False)
 
@@ -2232,11 +2252,8 @@ class Styler(StylerRenderer):
         """
         msg = "`caption` must be either a string or 2-tuple of strings."
         if isinstance(caption, tuple):
-            if (
-                len(caption) != 2
-                or not isinstance(caption[0], str)
-                or not isinstance(caption[1], str)
-            ):
+            if (len(caption) != 2 or not isinstance(caption[0], str)
+                    or not isinstance(caption[1], str)):
                 raise ValueError(msg)
         elif not isinstance(caption, str):
             raise ValueError(msg)
@@ -2280,7 +2297,8 @@ class Styler(StylerRenderer):
         """
         axis = self.data._get_axis_number(axis)
         obj = self.data.index if axis == 0 else self.data.columns
-        pixel_size = (75 if axis == 0 else 25) if not pixel_size else pixel_size
+        pixel_size = (
+            75 if axis == 0 else 25) if not pixel_size else pixel_size
 
         props = "position:sticky; background-color:white;"
         if not isinstance(obj, pd.MultiIndex):
@@ -2289,23 +2307,20 @@ class Styler(StylerRenderer):
             if axis == 1:
                 # stick the first <tr> of <head> and, if index names, the second <tr>
                 # if self._hide_columns then no <thead><tr> here will exist: no conflict
-                styles: CSSStyles = [
-                    {
-                        "selector": "thead tr:nth-child(1) th",
-                        "props": props + "top:0px; z-index:2;",
-                    }
-                ]
+                styles: CSSStyles = [{
+                    "selector": "thead tr:nth-child(1) th",
+                    "props": props + "top:0px; z-index:2;",
+                }]
                 if not self.index.names[0] is None:
                     styles[0]["props"] = (
-                        props + f"top:0px; z-index:2; height:{pixel_size}px;"
-                    )
-                    styles.append(
-                        {
-                            "selector": "thead tr:nth-child(2) th",
-                            "props": props
-                            + f"top:{pixel_size}px; z-index:2; height:{pixel_size}px; ",
-                        }
-                    )
+                        props + f"top:0px; z-index:2; height:{pixel_size}px;")
+                    styles.append({
+                        "selector":
+                        "thead tr:nth-child(2) th",
+                        "props":
+                        props +
+                        f"top:{pixel_size}px; z-index:2; height:{pixel_size}px; ",
+                    })
             else:
                 # stick the first <th> of each <tr> in both <thead> and <tbody>
                 # if self._hide_index then no <th> will exist in <tbody>: no conflict
@@ -2324,54 +2339,47 @@ class Styler(StylerRenderer):
         else:
             # handle the MultiIndex case
             range_idx = list(range(obj.nlevels))
-            levels_: list[int] = refactor_levels(levels, obj) if levels else range_idx
+            levels_: list[int] = refactor_levels(levels,
+                                                 obj) if levels else range_idx
             levels_ = sorted(levels_)
 
             if axis == 1:
                 styles = []
                 for i, level in enumerate(levels_):
-                    styles.append(
-                        {
-                            "selector": f"thead tr:nth-child({level+1}) th",
-                            "props": props
-                            + (
-                                f"top:{i * pixel_size}px; height:{pixel_size}px; "
-                                "z-index:2;"
-                            ),
-                        }
-                    )
+                    styles.append({
+                        "selector":
+                        f"thead tr:nth-child({level+1}) th",
+                        "props":
+                        props +
+                        (f"top:{i * pixel_size}px; height:{pixel_size}px; "
+                         "z-index:2;"),
+                    })
                 if not all(name is None for name in self.index.names):
-                    styles.append(
-                        {
-                            "selector": f"thead tr:nth-child({obj.nlevels+1}) th",
-                            "props": props
-                            + (
-                                f"top:{(i+1) * pixel_size}px; height:{pixel_size}px; "
-                                "z-index:2;"
-                            ),
-                        }
-                    )
+                    styles.append({
+                        "selector":
+                        f"thead tr:nth-child({obj.nlevels+1}) th",
+                        "props":
+                        props +
+                        (f"top:{(i+1) * pixel_size}px; height:{pixel_size}px; "
+                         "z-index:2;"),
+                    })
 
             else:
                 styles = []
                 for i, level in enumerate(levels_):
-                    props_ = props + (
-                        f"left:{i * pixel_size}px; "
-                        f"min-width:{pixel_size}px; "
-                        f"max-width:{pixel_size}px; "
-                    )
-                    styles.extend(
-                        [
-                            {
-                                "selector": f"thead tr th:nth-child({level+1})",
-                                "props": props_ + "z-index:3 !important;",
-                            },
-                            {
-                                "selector": f"tbody tr th.level{level}",
-                                "props": props_ + "z-index:1;",
-                            },
-                        ]
-                    )
+                    props_ = props + (f"left:{i * pixel_size}px; "
+                                      f"min-width:{pixel_size}px; "
+                                      f"max-width:{pixel_size}px; ")
+                    styles.extend([
+                        {
+                            "selector": f"thead tr th:nth-child({level+1})",
+                            "props": props_ + "z-index:3 !important;",
+                        },
+                        {
+                            "selector": f"tbody tr th.level{level}",
+                            "props": props_ + "z-index:1;",
+                        },
+                    ])
 
         return self.set_table_styles(styles, overwrite=False)
 
@@ -2499,23 +2507,17 @@ class Styler(StylerRenderer):
             obj = self.data.index if axis == 1 else self.data.columns
             idf = f".{self.css['row']}" if axis == 1 else f".{self.css['col']}"
 
-            table_styles = [
-                {
-                    "selector": str(s["selector"]) + idf + str(idx),
-                    "props": maybe_convert_css_to_tuples(s["props"]),
-                }
-                for key, styles in table_styles.items()
+            table_styles = [{
+                "selector": str(s["selector"]) + idf + str(idx),
+                "props": maybe_convert_css_to_tuples(s["props"]),
+            } for key, styles in table_styles.items()
                 for idx in obj.get_indexer_for([key])
-                for s in format_table_styles(styles)
-            ]
+                for s in format_table_styles(styles)]
         else:
-            table_styles = [
-                {
-                    "selector": s["selector"],
-                    "props": maybe_convert_css_to_tuples(s["props"]),
-                }
-                for s in table_styles
-            ]
+            table_styles = [{
+                "selector": s["selector"],
+                "props": maybe_convert_css_to_tuples(s["props"]),
+            } for s in table_styles]
 
         if not overwrite and self.table_styles is not None:
             self.table_styles.extend(table_styles)
@@ -2820,7 +2822,8 @@ class Styler(StylerRenderer):
             obj, objs, alt = "column", "columns", "columns"
 
         if level is not None and subset is not None:
-            raise ValueError("`subset` and `level` cannot be passed simultaneously")
+            raise ValueError(
+                "`subset` and `level` cannot be passed simultaneously")
 
         if subset is None:
             if level is None and names:
@@ -2839,9 +2842,11 @@ class Styler(StylerRenderer):
             )
         else:
             if axis == 0:
-                subset_ = IndexSlice[subset, :]  # new var so mypy reads not Optional
+                subset_ = IndexSlice[
+                    subset, :]  # new var so mypy reads not Optional
             else:
-                subset_ = IndexSlice[:, subset]  # new var so mypy reads not Optional
+                subset_ = IndexSlice[:,
+                                     subset]  # new var so mypy reads not Optional
             subset = non_reducing_slice(subset_)
             hide = self.data.loc[subset]
             h_els = getattr(self, objs).get_indexer_for(getattr(hide, objs))
@@ -3172,18 +3177,19 @@ class Styler(StylerRenderer):
         elif color is not None and cmap is not None:
             raise ValueError("`color` and `cmap` cannot both be given")
         elif color is not None:
-            if (isinstance(color, (list, tuple)) and len(color) > 2) or not isinstance(
-                color, (str, list, tuple)
-            ):
+            if (isinstance(color, (list, tuple)) and
+                    len(color) > 2) or not isinstance(color,
+                                                      (str, list, tuple)):
                 raise ValueError(
                     "`color` must be string or list or tuple of 2 strings,"
-                    "(eg: color=['#d65f5f', '#5fba7d'])"
-                )
+                    "(eg: color=['#d65f5f', '#5fba7d'])")
 
         if not (0 <= width <= 100):
-            raise ValueError(f"`width` must be a value in [0, 100], got {width}")
+            raise ValueError(
+                f"`width` must be a value in [0, 100], got {width}")
         elif not (0 <= height <= 100):
-            raise ValueError(f"`height` must be a value in [0, 100], got {height}")
+            raise ValueError(
+                f"`height` must be a value in [0, 100], got {height}")
 
         if subset is None:
             subset = self.data.select_dtypes(include=np.number).columns
@@ -3560,9 +3566,10 @@ class Styler(StylerRenderer):
         )
 
     @classmethod
-    def from_custom_template(
-        cls, searchpath, html_table: str | None = None, html_style: str | None = None
-    ):
+    def from_custom_template(cls,
+                             searchpath,
+                             html_table: str | None = None,
+                             html_style: str | None = None):
         """
         Factory function for creating a subclass of ``Styler``.
 
@@ -3590,7 +3597,8 @@ class Styler(StylerRenderer):
             Has the correct ``env``,``template_html``, ``template_html_table`` and
             ``template_html_style`` class attributes set.
         """
-        loader = jinja2.ChoiceLoader([jinja2.FileSystemLoader(searchpath), cls.loader])
+        loader = jinja2.ChoiceLoader(
+            [jinja2.FileSystemLoader(searchpath), cls.loader])
 
         # mypy doesn't like dynamically-defined classes
         # error: Variable "cls" is not valid as a type
@@ -3753,13 +3761,11 @@ def _validate_apply_axis_arg(
     if isinstance(arg, Series) and isinstance(data, DataFrame):
         raise ValueError(
             f"'{arg_name}' is a Series but underlying data for operations "
-            f"is a DataFrame since 'axis=None'"
-        )
+            f"is a DataFrame since 'axis=None'")
     elif isinstance(arg, DataFrame) and isinstance(data, Series):
         raise ValueError(
             f"'{arg_name}' is a DataFrame but underlying data for "
-            f"operations is a Series with 'axis in [0,1]'"
-        )
+            f"operations is a Series with 'axis in [0,1]'")
     elif isinstance(arg, (Series, DataFrame)):  # align indx / cols to data
         arg = arg.reindex_like(data, method=None).to_numpy(**dtype)
     else:
@@ -3769,8 +3775,7 @@ def _validate_apply_axis_arg(
             raise ValueError(
                 f"supplied '{arg_name}' is not correct shape for data over "
                 f"selected 'axis': got {arg.shape}, "
-                f"expected {data.shape}"
-            )
+                f"expected {data.shape}")
     return arg
 
 
@@ -3817,10 +3822,8 @@ def _background_gradient(
             float
                 The relative luminance as a value from 0 to 1
             """
-            r, g, b = (
-                x / 12.92 if x <= 0.04045 else ((x + 0.055) / 1.055) ** 2.4
-                for x in rgba[:3]
-            )
+            r, g, b = (x / 12.92 if x <= 0.04045 else
+                       ((x + 0.055) / 1.055)**2.4 for x in rgba[:3])
             return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
         def css(rgba, text_only) -> str:
@@ -3871,32 +3874,27 @@ def _highlight_between(
     else:
         raise ValueError(
             f"'inclusive' values can be 'both', 'left', 'right', or 'neither' "
-            f"got {inclusive}"
-        )
+            f"got {inclusive}")
 
-    g_left = (
-        ops[0](data, left)
-        if left is not None
-        else np.full(data.shape, True, dtype=bool)
-    )
+    g_left = (ops[0](data, left)
+              if left is not None else np.full(data.shape, True, dtype=bool))
     if isinstance(g_left, (DataFrame, Series)):
         g_left = g_left.where(pd.notna(g_left), False)
-    l_right = (
-        ops[1](data, right)
-        if right is not None
-        else np.full(data.shape, True, dtype=bool)
-    )
+    l_right = (ops[1](data, right)
+               if right is not None else np.full(data.shape, True, dtype=bool))
     if isinstance(l_right, (DataFrame, Series)):
         l_right = l_right.where(pd.notna(l_right), False)
     return np.where(g_left & l_right, props, "")
 
 
-def _highlight_value(data: DataFrame | Series, op: str, props: str) -> np.ndarray:
+def _highlight_value(data: DataFrame | Series, op: str,
+                     props: str) -> np.ndarray:
     """
     Return an array of css strings based on the condition of values matching an op.
     """
     value = getattr(data, op)(skipna=True)
-    if isinstance(data, DataFrame):  # min/max must be done twice to return scalar
+    if isinstance(data,
+                  DataFrame):  # min/max must be done twice to return scalar
         value = getattr(value, op)(skipna=True)
     cond = data == value
     cond = cond.where(pd.notna(cond), False)
@@ -3969,7 +3967,8 @@ def _bar(
             cell_css += f" {color} {end*100:.1f}%, transparent {end*100:.1f}%)"
         return cell_css
 
-    def css_calc(x, left: float, right: float, align: str, color: str | list | tuple):
+    def css_calc(x, left: float, right: float, align: str,
+                 color: str | list | tuple):
         """
         Return the correct CSS for bar placement based on calculated values.
 
@@ -4027,9 +4026,8 @@ def _bar(
             elif align == "mid":
                 # bars drawn from zero either leftwards or rightwards with center at mid
                 mid: float = (left + right) / 2
-                z_frac = (
-                    -mid / (right - left) + 0.5 if mid < 0 else -left / (right - left)
-                )
+                z_frac = (-mid / (right - left) + 0.5 if mid < 0 else -left /
+                          (right - left))
 
             if x < 0:
                 start, end = (x - left) / (right - left), z_frac
@@ -4039,7 +4037,8 @@ def _bar(
         ret = css_bar(start * width, end * width, color)
         if height < 1 and "background: linear-gradient(" in ret:
             return (
-                ret + f" no-repeat center; background-size: 100% {height * 100:.1f}%;"
+                ret +
+                f" no-repeat center; background-size: 100% {height * 100:.1f}%;"
             )
         else:
             return ret
@@ -4071,38 +4070,32 @@ def _bar(
         # use the matplotlib colormap input
         with _mpl(Styler.bar) as (plt, mpl):
             cmap = (
-                mpl.cm.get_cmap(cmap)
-                if isinstance(cmap, str)
-                else cmap  # assumed to be a Colormap instance as documented
+                mpl.cm.get_cmap(cmap) if isinstance(cmap, str) else
+                cmap  # assumed to be a Colormap instance as documented
             )
             norm = mpl.colors.Normalize(left, right)
             rgbas = cmap(norm(values))
             if data.ndim == 1:
                 rgbas = [mpl.colors.rgb2hex(rgba) for rgba in rgbas]
             else:
-                rgbas = [[mpl.colors.rgb2hex(rgba) for rgba in row] for row in rgbas]
+                rgbas = [[mpl.colors.rgb2hex(rgba) for rgba in row]
+                         for row in rgbas]
 
-    assert isinstance(align, str)  # mypy: should now be in [left, right, mid, zero]
+    assert isinstance(align,
+                      str)  # mypy: should now be in [left, right, mid, zero]
     if data.ndim == 1:
         return [
-            css_calc(
-                x - z, left - z, right - z, align, colors if rgbas is None else rgbas[i]
-            )
+            css_calc(x - z, left - z, right - z, align,
+                     colors if rgbas is None else rgbas[i])
             for i, x in enumerate(values)
         ]
     else:
-        return np.array(
-            [
-                [
-                    css_calc(
-                        x - z,
-                        left - z,
-                        right - z,
-                        align,
-                        colors if rgbas is None else rgbas[i][j],
-                    )
-                    for j, x in enumerate(row)
-                ]
-                for i, row in enumerate(values)
-            ]
-        )
+        return np.array([[
+            css_calc(
+                x - z,
+                left - z,
+                right - z,
+                align,
+                colors if rgbas is None else rgbas[i][j],
+            ) for j, x in enumerate(row)
+        ] for i, row in enumerate(values)])
