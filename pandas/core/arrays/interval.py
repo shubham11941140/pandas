@@ -803,7 +803,7 @@ class IntervalArray(IntervalMixin, ExtensionArray):
     def min(self, *, axis: int | None = None, skipna: bool = True):
         nv.validate_minmax_axis(axis, self.ndim)
 
-        if not len(self):
+        if not self:
             return self._na_value
 
         mask = self.isna()
@@ -820,7 +820,7 @@ class IntervalArray(IntervalMixin, ExtensionArray):
     def max(self, *, axis: int | None = None, skipna: bool = True):
         nv.validate_minmax_axis(axis, self.ndim)
 
-        if not len(self):
+        if not self:
             return self._na_value
 
         mask = self.isna()
@@ -978,7 +978,7 @@ class IntervalArray(IntervalMixin, ExtensionArray):
         return isna(self._left)
 
     def shift(self, periods: int = 1, fill_value: object = None) -> IntervalArray:
-        if not len(self) or periods == 0:
+        if not self or periods == 0:
             return self.copy()
 
         if isna(fill_value):

@@ -3899,7 +3899,7 @@ class DataFrame(NDFrame, OpsMixin):
         passed value.
         """
         # GH5632, make sure that we are a Series convertible
-        if not len(self.index) and is_list_like(value) and len(value):
+        if not self.index and is_list_like(value) and len(value):
             if not isinstance(value, DataFrame):
                 try:
                     value = Series(value)
@@ -11151,7 +11151,7 @@ def _from_nested_dict(data) -> collections.defaultdict:
 def _reindex_for_setitem(value: DataFrame | Series, index: Index) -> ArrayLike:
     # reindex if necessary
 
-    if value.index.equals(index) or not len(index):
+    if value.index.equals(index) or not index:
         return value._values.copy()
 
     # GH#4107

@@ -2180,7 +2180,7 @@ class Categorical(NDArrayBackedExtensionArray, PandasObject, ObjectStringArrayMi
         nv.validate_min((), kwargs)
         self.check_for_ordered("min")
 
-        if not len(self._codes):
+        if not self._codes:
             return self.dtype.na_value
 
         good = self._codes != -1
@@ -2217,7 +2217,7 @@ class Categorical(NDArrayBackedExtensionArray, PandasObject, ObjectStringArrayMi
         nv.validate_max((), kwargs)
         self.check_for_ordered("max")
 
-        if not len(self._codes):
+        if not self._codes:
             return self.dtype.na_value
 
         good = self._codes != -1
