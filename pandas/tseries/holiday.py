@@ -54,7 +54,7 @@ def next_monday_or_tuesday(dt: datetime) -> datetime:
     (because Monday is already taken by adjacent holiday on the day before)
     """
     dow = dt.weekday()
-    if dow == 5 or dow == 6:
+    if dow in (5, 6):
         return dt + timedelta(2)
     elif dow == 0:
         return dt + timedelta(1)
