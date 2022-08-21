@@ -56,6 +56,7 @@ _BOM = "\ufeff"
 
 
 class PythonParser(ParserBase):
+
     def __init__(self, f: ReadCsvBuffer[str] | list, **kwds):
         """
         Workhorse function for processing nested list into DataFrame
@@ -140,9 +141,8 @@ class PythonParser(ParserBase):
         # multiple date column thing turning into a real spaghetti factory
 
         if not self._has_complex_date_col:
-            (index_names, self.orig_names, self.columns) = self._get_index_name(
-                self.columns
-            )
+            (index_names, self.orig_names,
+             self.columns) = self._get_index_name(self.columns)
             self._name_processed = True
             if self.index_names is None:
                 self.index_names = index_names
@@ -150,12 +150,12 @@ class PythonParser(ParserBase):
         if self._col_indices is None:
             self._col_indices = list(range(len(self.columns)))
 
-        self._parse_date_cols = self._validate_parse_dates_presence(self.columns)
+        self._parse_date_cols = self._validate_parse_dates_presence(
+            self.columns)
         no_thousands_columns: set[int] | None = None
         if self.parse_dates:
             no_thousands_columns = self._set_noconvert_dtype_columns(
-                self._col_indices, self.columns
-            )
+                self._col_indices, self.columns)
         self._no_thousands_columns = no_thousands_columns
 
         if len(self.decimal) != 1:
@@ -166,10 +166,8 @@ class PythonParser(ParserBase):
             regex = rf"^[\-\+]?[0-9]*({decimal}[0-9]*)?([0-9]?(E|e)\-?[0-9]+)?$"
         else:
             thousands = re.escape(self.thousands)
-            regex = (
-                rf"^[\-\+]?([0-9]+{thousands}|[0-9])*({decimal}[0-9]*)?"
-                rf"([0-9]?(E|e)\-?[0-9]+)?$"
-            )
+            regex = (rf"^[\-\+]?([0-9]+{thousands}|[0-9])*({decimal}[0-9]*)?"
+                     rf"([0-9]?(E|e)\-?[0-9]+)?$")
         self.num = re.compile(regex)
 
     def _make_reader(self, f: IO[str] | ReadCsvBuffer[str]) -> None:
@@ -240,10 +238,10 @@ class PythonParser(ParserBase):
         self.data = reader  # type: ignore[assignment]
 
     def read(
-        self, rows: int | None = None
-    ) -> tuple[
-        Index | None, Sequence[Hashable] | MultiIndex, Mapping[Hashable, ArrayLike]
-    ]:
+        self,
+        rows: int | None = None
+    ) -> tuple[Index | None, Sequence[Hashable] | MultiIndex, Mapping[
+            Hashable, ArrayLike]]:
         try:
             content = self._get_lines(rows)
         except StopIteration:
@@ -267,7 +265,8 @@ class PythonParser(ParserBase):
                 self.index_names,
                 self.dtype,
             )
-            conv_columns = self._maybe_make_multi_index_columns(columns, self.col_names)
+            conv_columns = self._maybe_make_multi_index_columns(
+                columns, self.col_names)
             return index, conv_columns, col_dict
 
         # handle new style for names in index
@@ -283,9 +282,8 @@ class PythonParser(ParserBase):
         conv_data = self._convert_data(data)
         columns, conv_data = self._do_date_conversions(columns, conv_data)
 
-        index, result_columns = self._make_index(
-            conv_data, alldata, columns, indexnamerow
-        )
+        index, result_columns = self._make_index(conv_data, alldata, columns,
+                                                 indexnamerow)
 
         return index, result_columns, conv_data
 
@@ -304,7 +302,8 @@ class PythonParser(ParserBase):
         self._check_data_length(names, alldata)
 
         return {
-            name: alldata[i + offset] for i, name in enumerate(names) if i < len_alldata
+            name: alldata[i + offset]
+            for i, name in enumerate(names) if i < len_alldata
         }, names
 
     # legacy
@@ -350,8 +349,7 @@ class PythonParser(ParserBase):
         )
 
     def _infer_columns(
-        self,
-    ) -> tuple[list[list[Scalar | None]], int, set[Scalar | None]]:
+            self, ) -> tuple[list[list[Scalar | None]], int, set[Scalar | None]]:
         names = self.names
         num_original_columns = 0
         clear_buffer = True
@@ -382,8 +380,7 @@ class PythonParser(ParserBase):
                     if self.line_pos < hr:
                         raise ValueError(
                             f"Passed header={hr} but only {self.line_pos + 1} lines in "
-                            "file"
-                        ) from err
+                            "file") from err
 
                     # We have an empty file, so check
                     # if columns are provided. That will
@@ -395,7 +392,8 @@ class PythonParser(ParserBase):
                         return columns, num_original_columns, unnamed_cols
 
                     if not self.names:
-                        raise EmptyDataError("No columns to parse from file") from err
+                        raise EmptyDataError(
+                            "No columns to parse from file") from err
 
                     line = self.names[:]
 
@@ -419,8 +417,7 @@ class PythonParser(ParserBase):
                     # Ensure that regular columns are used before unnamed ones
                     # to keep given names and mangle unnamed columns
                     col_loop_order = [
-                        i
-                        for i in range(len(this_columns))
+                        i for i in range(len(this_columns))
                         if i not in this_unnamed_cols
                     ] + this_unnamed_cols
 
@@ -438,13 +435,12 @@ class PythonParser(ParserBase):
                                 else:
                                     cur_count = counts[col]
 
-                            if (
-                                self.dtype is not None
-                                and is_dict_like(self.dtype)
-                                and self.dtype.get(old_col) is not None
-                                and self.dtype.get(col) is None
-                            ):
-                                self.dtype.update({col: self.dtype.get(old_col)})
+                            if (self.dtype is not None
+                                    and is_dict_like(self.dtype)
+                                    and self.dtype.get(old_col) is not None
+                                    and self.dtype.get(col) is None):
+                                self.dtype.update(
+                                    {col: self.dtype.get(old_col)})
                         this_columns[i] = col
                         counts[col] = cur_count + 1
                 elif have_mi_columns:
@@ -460,13 +456,16 @@ class PythonParser(ParserBase):
                         unnamed_count = len(this_unnamed_cols)
 
                         # if wrong number of blanks or no index, not our format
-                        if (lc != unnamed_count and lc - ic > unnamed_count) or ic == 0:
+                        if (lc != unnamed_count
+                                and lc - ic > unnamed_count) or ic == 0:
                             clear_buffer = False
                             this_columns = [None] * lc
                             self.buf = [self.buf[-1]]
 
                 columns.append(this_columns)
-                unnamed_cols.update({this_columns[i] for i in this_unnamed_cols})
+                unnamed_cols.update(
+                    {this_columns[i]
+                     for i in this_unnamed_cols})
 
                 if len(columns) == 1:
                     num_original_columns = len(this_columns)
@@ -482,15 +481,16 @@ class PythonParser(ParserBase):
                 except StopIteration:
                     first_line = None
 
-                len_first_data_row = 0 if first_line is None else len(first_line)
+                len_first_data_row = 0 if first_line is None else len(
+                    first_line)
 
-                if len(names) > len(columns[0]) and len(names) > len_first_data_row:
-                    raise ValueError(
-                        "Number of passed names did not match "
-                        "number of header fields in the file"
-                    )
+                if len(names) > len(
+                        columns[0]) and len(names) > len_first_data_row:
+                    raise ValueError("Number of passed names did not match "
+                                     "number of header fields in the file")
                 if len(columns) > 1:
-                    raise TypeError("Cannot pass names with multi-index columns")
+                    raise TypeError(
+                        "Cannot pass names with multi-index columns")
 
                 if self.usecols is not None:
                     # Set _use_cols. We don't store columns because they are
@@ -499,22 +499,21 @@ class PythonParser(ParserBase):
                 else:
                     num_original_columns = len(names)
                 if self._col_indices is not None and len(names) != len(
-                    self._col_indices
-                ):
+                        self._col_indices):
                     columns = [[names[i] for i in sorted(self._col_indices)]]
                 else:
                     columns = [names]
             else:
-                columns = self._handle_usecols(
-                    columns, columns[0], num_original_columns
-                )
+                columns = self._handle_usecols(columns, columns[0],
+                                               num_original_columns)
         else:
             try:
                 line = self._buffered_line()
 
             except StopIteration as err:
                 if not names:
-                    raise EmptyDataError("No columns to parse from file") from err
+                    raise EmptyDataError(
+                        "No columns to parse from file") from err
 
                 line = names[:]
 
@@ -528,19 +527,19 @@ class PythonParser(ParserBase):
                     columns = [[f"{self.prefix}{i}" for i in range(ncols)]]
                 else:
                     columns = [list(range(ncols))]
-                columns = self._handle_usecols(
-                    columns, columns[0], num_original_columns
-                )
+                columns = self._handle_usecols(columns, columns[0],
+                                               num_original_columns)
             else:
                 if self.usecols is None or len(names) >= num_original_columns:
-                    columns = self._handle_usecols([names], names, num_original_columns)
+                    columns = self._handle_usecols([names], names,
+                                                   num_original_columns)
                     num_original_columns = len(names)
                 else:
-                    if not callable(self.usecols) and len(names) != len(self.usecols):
+                    if not callable(
+                            self.usecols) and len(names) != len(self.usecols):
                         raise ValueError(
                             "Number of passed names did not match number of "
-                            "header fields in the file"
-                        )
+                            "header fields in the file")
                     # Ignore output but set used columns.
                     self._handle_usecols([names], names, ncols)
                     columns = [names]
@@ -566,8 +565,7 @@ class PythonParser(ParserBase):
             elif any(isinstance(u, str) for u in self.usecols):
                 if len(columns) > 1:
                     raise ValueError(
-                        "If using multiple headers, usecols must be integers."
-                    )
+                        "If using multiple headers, usecols must be integers.")
                 col_indices = []
 
                 for col in self.usecols:
@@ -575,7 +573,8 @@ class PythonParser(ParserBase):
                         try:
                             col_indices.append(usecols_key.index(col))
                         except ValueError:
-                            self._validate_usecols_names(self.usecols, usecols_key)
+                            self._validate_usecols_names(
+                                self.usecols, usecols_key)
                     else:
                         col_indices.append(col)
             else:
@@ -591,10 +590,8 @@ class PythonParser(ParserBase):
                     )
                 col_indices = self.usecols
 
-            columns = [
-                [n for i, n in enumerate(column) if i in col_indices]
-                for column in columns
-            ]
+            columns = [[n for i, n in enumerate(column) if i in col_indices]
+                       for column in columns]
             self._col_indices = sorted(col_indices)
         return columns
 
@@ -651,7 +648,7 @@ class PythonParser(ParserBase):
             # Extract any remaining data after the second
             # quotation mark.
             if len(first_row_bom) > end + 1:
-                new_row += first_row_bom[end + 1 :]
+                new_row += first_row_bom[end + 1:]
 
         else:
 
@@ -688,9 +685,8 @@ class PythonParser(ParserBase):
                     line = self._check_comments([self.data[self.pos]])[0]
                     self.pos += 1
                     # either uncommented or blank to begin with
-                    if not self.skip_blank_lines and (
-                        self._is_line_empty(self.data[self.pos - 1]) or line
-                    ):
+                    if not self.skip_blank_lines and (self._is_line_empty(
+                            self.data[self.pos - 1]) or line):
                         break
                     elif self.skip_blank_lines:
                         ret = self._remove_empty_lines([line])
@@ -776,25 +772,24 @@ class PythonParser(ParserBase):
             assert isinstance(line, list)
             return line
         except csv.Error as e:
-            if self.on_bad_lines in (self.BadLineHandleMethod.ERROR, self.BadLineHandleMethod.WARN):
+            if self.on_bad_lines in (
+                    self.BadLineHandleMethod.ERROR,
+                    self.BadLineHandleMethod.WARN,
+            ):
                 msg = str(e)
 
                 if "NULL byte" in msg or "line contains NUL" in msg:
-                    msg = (
-                        "NULL byte detected. This byte "
-                        "cannot be processed in Python's "
-                        "native csv library at the moment, "
-                        "so please pass in engine='c' instead"
-                    )
+                    msg = ("NULL byte detected. This byte "
+                           "cannot be processed in Python's "
+                           "native csv library at the moment, "
+                           "so please pass in engine='c' instead")
 
                 if self.skipfooter > 0:
-                    reason = (
-                        "Error could possibly be due to "
-                        "parsing errors in the skipped footer rows "
-                        "(the skipfooter keyword is only applied "
-                        "after Python's csv library has parsed "
-                        "all rows)."
-                    )
+                    reason = ("Error could possibly be due to "
+                              "parsing errors in the skipped footer rows "
+                              "(the skipfooter keyword is only applied "
+                              "after Python's csv library has parsed "
+                              "all rows).")
                     msg += ". " + reason
 
                 self._alert_malformed(msg, row_num)
@@ -807,21 +802,19 @@ class PythonParser(ParserBase):
         for line in lines:
             rl = []
             for x in line:
-                if (
-                    not isinstance(x, str)
-                    or self.comment not in x
-                    or x in self.na_values
-                ):
+                if (not isinstance(x, str) or self.comment not in x
+                        or x in self.na_values):
                     rl.append(x)
                 else:
-                    x = x[: x.find(self.comment)]
+                    x = x[:x.find(self.comment)]
                     if len(x) > 0:
                         rl.append(x)
                     break
             ret.append(rl)
         return ret
 
-    def _remove_empty_lines(self, lines: list[list[Scalar]]) -> list[list[Scalar]]:
+    def _remove_empty_lines(self,
+                            lines: list[list[Scalar]]) -> list[list[Scalar]]:
         """
         Iterate through the lines and remove any that are
         either empty or contain only one whitespace value
@@ -839,35 +832,31 @@ class PythonParser(ParserBase):
         ret = []
         for line in lines:
             # Remove empty lines and lines with only one whitespace value
-            if (
-                len(line) > 1
-                or len(line) == 1
-                and (not isinstance(line[0], str) or line[0].strip())
-            ):
+            if (len(line) > 1 or len(line) == 1 and
+                    (not isinstance(line[0], str) or line[0].strip())):
                 ret.append(line)
         return ret
 
-    def _check_thousands(self, lines: list[list[Scalar]]) -> list[list[Scalar]]:
+    def _check_thousands(self,
+                         lines: list[list[Scalar]]) -> list[list[Scalar]]:
         if self.thousands is None:
             return lines
 
-        return self._search_replace_num_columns(
-            lines=lines, search=self.thousands, replace=""
-        )
+        return self._search_replace_num_columns(lines=lines,
+                                                search=self.thousands,
+                                                replace="")
 
-    def _search_replace_num_columns(
-        self, lines: list[list[Scalar]], search: str, replace: str
-    ) -> list[list[Scalar]]:
+    def _search_replace_num_columns(self, lines: list[list[Scalar]],
+                                    search: str,
+                                    replace: str) -> list[list[Scalar]]:
         ret = []
         for line in lines:
             rl = []
             for i, x in enumerate(line):
-                if (
-                    not isinstance(x, str)
-                    or search not in x
-                    or (self._no_thousands_columns and i in self._no_thousands_columns)
-                    or not self.num.search(x.strip())
-                ):
+                if (not isinstance(x, str) or search not in x
+                        or (self._no_thousands_columns
+                            and i in self._no_thousands_columns)
+                        or not self.num.search(x.strip())):
                     rl.append(x)
                 else:
                     rl.append(x.replace(search, replace))
@@ -878,9 +867,9 @@ class PythonParser(ParserBase):
         if self.decimal == parser_defaults["decimal"]:
             return lines
 
-        return self._search_replace_num_columns(
-            lines=lines, search=self.decimal, replace="."
-        )
+        return self._search_replace_num_columns(lines=lines,
+                                                search=self.decimal,
+                                                replace=".")
 
     def _clear_buffer(self) -> None:
         self.buf = []
@@ -954,9 +943,8 @@ class PythonParser(ParserBase):
 
         else:
             # Case 2
-            (index_name, _, self.index_col) = self._clean_index_names(
-                columns, self.index_col
-            )
+            (index_name, _,
+             self.index_col) = self._clean_index_names(columns, self.index_col)
 
         return index_name, orig_names, columns
 
@@ -973,11 +961,9 @@ class PythonParser(ParserBase):
         # elements are padded with NaN).
         # error: Non-overlapping identity check (left operand type: "List[int]",
         # right operand type: "Literal[False]")
-        if (
-            max_len > col_len
-            and self.index_col is not False  # type: ignore[comparison-overlap]
-            and self.usecols is None
-        ):
+        if (max_len > col_len and
+                self.index_col is not False  # type: ignore[comparison-overlap]
+                and self.usecols is None):
 
             footers = self.skipfooter if self.skipfooter else 0
             bad_lines = []
@@ -994,7 +980,10 @@ class PythonParser(ParserBase):
                         new_l = self.on_bad_lines(l)
                         if new_l is not None:
                             content.append(new_l)
-                    elif self.on_bad_lines in (self.BadLineHandleMethod.ERROR, self.BadLineHandleMethod.WARN):
+                    elif self.on_bad_lines in (
+                            self.BadLineHandleMethod.ERROR,
+                            self.BadLineHandleMethod.WARN,
+                    ):
                         row_num = self.pos - (content_len - i + footers)
                         bad_lines.append((row_num, actual_len))
 
@@ -1004,26 +993,20 @@ class PythonParser(ParserBase):
                     content.append(l)
 
             for row_num, actual_len in bad_lines:
-                msg = (
-                    f"Expected {col_len} fields in line {row_num + 1}, saw "
-                    f"{actual_len}"
-                )
-                if (
-                    self.delimiter
-                    and len(self.delimiter) > 1
-                    and self.quoting != csv.QUOTE_NONE
-                ):
+                msg = (f"Expected {col_len} fields in line {row_num + 1}, saw "
+                       f"{actual_len}")
+                if (self.delimiter and len(self.delimiter) > 1
+                        and self.quoting != csv.QUOTE_NONE):
                     # see gh-13374
-                    reason = (
-                        "Error could possibly be due to quotes being "
-                        "ignored when a multi-char delimiter is used."
-                    )
+                    reason = ("Error could possibly be due to quotes being "
+                              "ignored when a multi-char delimiter is used.")
                     msg += ". " + reason
 
                 self._alert_malformed(msg, row_num + 1)
 
         # see gh-13320
-        zipped_content = list(lib.to_object_array(content, min_width=col_len).T)
+        zipped_content = list(
+            lib.to_object_array(content, min_width=col_len).T)
 
         if self.usecols:
             assert self._col_indices is not None
@@ -1031,12 +1014,9 @@ class PythonParser(ParserBase):
 
             if self._implicit_index:
                 zipped_content = [
-                    a
-                    for i, a in enumerate(zipped_content)
-                    if (
-                        i < len(self.index_col)
-                        or i - len(self.index_col) in col_indices
-                    )
+                    a for i, a in enumerate(zipped_content)
+                    if (i < len(self.index_col) or i -
+                        len(self.index_col) in col_indices)
                 ]
             else:
                 zipped_content = [
@@ -1063,10 +1043,10 @@ class PythonParser(ParserBase):
                 if self.pos > len(self.data):
                     raise StopIteration
                 if rows is None:
-                    new_rows = self.data[self.pos :]
+                    new_rows = self.data[self.pos:]
                     new_pos = len(self.data)
                 else:
-                    new_rows = self.data[self.pos : self.pos + rows]
+                    new_rows = self.data[self.pos:self.pos + rows]
                     new_pos = self.pos + rows
 
                 new_rows = self._remove_skipped_rows(new_rows)
@@ -1082,8 +1062,7 @@ class PythonParser(ParserBase):
                         if self.skiprows is not None and self.pos is not None:
                             # Only read additional rows if pos is in skiprows
                             rows_to_skip = len(
-                                set(self.skiprows) - set(range(self.pos))
-                            )
+                                set(self.skiprows) - set(range(self.pos)))
 
                         for _ in range(rows + rows_to_skip):
                             # assert for mypy, data is Iterator[str] or None, would
@@ -1098,7 +1077,8 @@ class PythonParser(ParserBase):
                         rows = 0
 
                         while True:
-                            new_row = self._next_iter_line(row_num=self.pos + rows + 1)
+                            new_row = self._next_iter_line(row_num=self.pos +
+                                                           rows + 1)
                             rows += 1
 
                             if new_row is not None:
@@ -1118,7 +1098,7 @@ class PythonParser(ParserBase):
             lines = new_rows
 
         if self.skipfooter:
-            lines = lines[: -self.skipfooter]
+            lines = lines[:-self.skipfooter]
 
         lines = self._check_comments(lines)
         if self.skip_blank_lines:
@@ -1126,10 +1106,12 @@ class PythonParser(ParserBase):
         lines = self._check_thousands(lines)
         return self._check_decimal(lines)
 
-    def _remove_skipped_rows(self, new_rows: list[list[Scalar]]) -> list[list[Scalar]]:
+    def _remove_skipped_rows(
+            self, new_rows: list[list[Scalar]]) -> list[list[Scalar]]:
         if self.skiprows:
             return [
-                row for i, row in enumerate(new_rows) if not self.skipfunc(i + self.pos)
+                row for i, row in enumerate(new_rows)
+                if not self.skipfunc(i + self.pos)
             ]
         return new_rows
 
@@ -1153,31 +1135,25 @@ class FixedWidthReader(abc.Iterator):
         self.delimiter = "\r\n" + delimiter if delimiter else "\n\r\t "
         self.comment = comment
         if colspecs == "infer":
-            self.colspecs = self.detect_colspecs(
-                infer_nrows=infer_nrows, skiprows=skiprows
-            )
+            self.colspecs = self.detect_colspecs(infer_nrows=infer_nrows,
+                                                 skiprows=skiprows)
         else:
             self.colspecs = colspecs
 
         if not isinstance(self.colspecs, (tuple, list)):
-            raise TypeError(
-                "column specifications must be a list or tuple, "
-                f"input was a {type(colspecs).__name__}"
-            )
+            raise TypeError("column specifications must be a list or tuple, "
+                            f"input was a {type(colspecs).__name__}")
 
         for colspec in self.colspecs:
-            if not (
-                isinstance(colspec, (tuple, list))
-                and len(colspec) == 2
-                and isinstance(colspec[0], (int, np.integer, type(None)))
-                and isinstance(colspec[1], (int, np.integer, type(None)))
-            ):
-                raise TypeError(
-                    "Each column specification must be "
-                    "2 element tuple or list of integers"
-                )
+            if not (isinstance(colspec, (tuple, list)) and len(colspec) == 2
+                    and isinstance(colspec[0], (int, np.integer, type(None)))
+                    and isinstance(colspec[1], (int, np.integer, type(None)))):
+                raise TypeError("Each column specification must be "
+                                "2 element tuple or list of integers")
 
-    def get_rows(self, infer_nrows: int, skiprows: set[int] | None = None) -> list[str]:
+    def get_rows(self,
+                 infer_nrows: int,
+                 skiprows: set[int] | None = None) -> list[str]:
         """
         Read rows from self.f, skipping as specified.
 
@@ -1216,8 +1192,9 @@ class FixedWidthReader(abc.Iterator):
         return detect_rows
 
     def detect_colspecs(
-        self, infer_nrows: int = 100, skiprows: set[int] | None = None
-    ) -> list[tuple[int, int]]:
+            self,
+            infer_nrows: int = 100,
+            skiprows: set[int] | None = None) -> list[tuple[int, int]]:
         # Regex escape the delimiters
         delimiters = "".join([rf"\{x}" for x in self.delimiter])
         pattern = re.compile(f"([^{delimiters}]+)")
@@ -1230,7 +1207,7 @@ class FixedWidthReader(abc.Iterator):
             rows = [row.partition(self.comment)[0] for row in rows]
         for row in rows:
             for m in pattern.finditer(row):
-                mask[m.start() : m.end()] = 1
+                mask[m.start():m.end()] = 1
         shifted = np.roll(mask, 1)
         shifted[0] = 0
         edges = np.where((mask ^ shifted) == 1)[0]
@@ -1249,7 +1226,10 @@ class FixedWidthReader(abc.Iterator):
         else:
             line = next(self.f)  # type: ignore[arg-type]
         # Note: 'colspecs' is a sequence of half-open intervals.
-        return [line[fromm:to].strip(self.delimiter) for (fromm, to) in self.colspecs]
+        return [
+            line[fromm:to].strip(self.delimiter)
+            for (fromm, to) in self.colspecs
+        ]
 
 
 class FixedWidthFieldParser(PythonParser):
@@ -1274,7 +1254,8 @@ class FixedWidthFieldParser(PythonParser):
             self.infer_nrows,
         )
 
-    def _remove_empty_lines(self, lines: list[list[Scalar]]) -> list[list[Scalar]]:
+    def _remove_empty_lines(self,
+                            lines: list[list[Scalar]]) -> list[list[Scalar]]:
         """
         Returns the list of lines without the empty ones. With fixed-width
         fields, empty lines become arrays of empty strings.
@@ -1282,8 +1263,7 @@ class FixedWidthFieldParser(PythonParser):
         See PythonParser._remove_empty_lines.
         """
         return [
-            line
-            for line in lines
+            line for line in lines
             if any(not isinstance(e, str) or e.strip() for e in line)
         ]
 

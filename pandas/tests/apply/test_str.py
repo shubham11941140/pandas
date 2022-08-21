@@ -38,8 +38,7 @@ def test_apply_with_string_funcs(request, float_frame, func, args, kwds, how):
                 raises=TypeError,
                 reason="agg/apply signature mismatch - agg passes 2nd "
                 "argument to func",
-            )
-        )
+            ))
     result = getattr(float_frame, how)(func, *args, **kwds)
     expected = getattr(float_frame, func)(*args, **kwds)
     tm.assert_series_equal(result, expected)
@@ -60,15 +59,13 @@ def test_apply_np_reducer(op, how):
     result = getattr(float_frame, how)(op)
     # pandas ddof defaults to 1, numpy to 0
     kwargs = {"ddof": 1} if op in ("std", "var") else {}
-    expected = Series(
-        getattr(np, op)(float_frame, axis=0, **kwargs), index=float_frame.columns
-    )
+    expected = Series(getattr(np, op)(float_frame, axis=0, **kwargs),
+                      index=float_frame.columns)
     tm.assert_series_equal(result, expected)
 
 
 @pytest.mark.parametrize(
-    "op", ["abs", "ceil", "cos", "cumsum", "exp", "log", "sqrt", "square"]
-)
+    "op", ["abs", "ceil", "cos", "cumsum", "exp", "log", "sqrt", "square"])
 @pytest.mark.parametrize("how", ["transform", "apply"])
 def test_apply_np_transformer(float_frame, op, how):
     # GH 39116
@@ -159,9 +156,8 @@ def test_agg_cython_table_series(series, func, expected):
                 ("cumsum", Series([np.nan, 1, 3, 6])),
             ],
         ),
-        tm.get_cython_table_params(
-            Series("a b c".split()), [("cumsum", Series(["a", "ab", "abc"]))]
-        ),
+        tm.get_cython_table_params(Series("a b c".split()),
+                                   [("cumsum", Series(["a", "ab", "abc"]))]),
     ),
 )
 def test_agg_cython_table_transform_series(series, func, expected):
@@ -218,9 +214,8 @@ def test_agg_cython_table_frame(df, func, expected, axis):
 @pytest.mark.parametrize(
     "df, func, expected",
     chain(
-        tm.get_cython_table_params(
-            DataFrame(), [("cumprod", DataFrame()), ("cumsum", DataFrame())]
-        ),
+        tm.get_cython_table_params(DataFrame(), [("cumprod", DataFrame()),
+                                                 ("cumsum", DataFrame())]),
         tm.get_cython_table_params(
             DataFrame([[np.nan, 1], [1, 2]]),
             [
@@ -283,7 +278,8 @@ def test_transform_groupby_kernel_frame(axis, float_frame, op):
     tm.assert_frame_equal(result2, expected2)
 
 
-@pytest.mark.parametrize("method", ["abs", "shift", "pct_change", "cumsum", "rank"])
+@pytest.mark.parametrize("method",
+                         ["abs", "shift", "pct_change", "cumsum", "rank"])
 def test_transform_method_name(method):
     # GH 19760
     df = DataFrame({"A": [-1, 2]})

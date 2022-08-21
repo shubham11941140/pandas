@@ -38,7 +38,7 @@ from pandas.io.formats.printing import (
 
 
 class PyTablesScope(_scope.Scope):
-    __slots__ = ("queryables",)
+    __slots__ = ("queryables", )
 
     queryables: dict[str, Any]
 
@@ -49,7 +49,9 @@ class PyTablesScope(_scope.Scope):
         local_dict=None,
         queryables: dict[str, Any] | None = None,
     ):
-        super().__init__(level + 1, global_dict=global_dict, local_dict=local_dict)
+        super().__init__(level + 1,
+                         global_dict=global_dict,
+                         local_dict=local_dict)
         self.queryables = queryables or {}
 
 
@@ -87,6 +89,7 @@ class Term(ops.Term):
 
 
 class Constant(Term):
+
     def __init__(self, value, env: PyTablesScope, side=None, encoding=None):
         assert isinstance(env, PyTablesScope), type(env)
         super().__init__(value, env, side=side, encoding=encoding)
@@ -103,7 +106,8 @@ class BinOp(ops.BinOp):
     queryables: dict[str, Any]
     condition: str | None
 
-    def __init__(self, op: str, lhs, rhs, queryables: dict[str, Any], encoding):
+    def __init__(self, op: str, lhs, rhs, queryables: dict[str, Any],
+                 encoding):
         super().__init__(op, lhs, rhs)
         self.queryables = queryables
         self.encoding = encoding
@@ -113,6 +117,7 @@ class BinOp(ops.BinOp):
         pass
 
     def prune(self, klass):
+
         def pr(left, right):
             """create and return a new specialized BinOp from myself"""
             if left is None:
@@ -137,9 +142,11 @@ class BinOp(ops.BinOp):
                 elif isinstance(right, k):
                     return right
 
-            return k(
-                self.op, left, right, queryables=self.queryables, encoding=self.encoding
-            ).evaluate()
+            return k(self.op,
+                     left,
+                     right,
+                     queryables=self.queryables,
+                     encoding=self.encoding).evaluate()
 
         left, right = self.lhs, self.rhs
 
@@ -256,7 +263,8 @@ class BinOp(ops.BinOp):
             # string quoting
             return TermValue(v, stringify(v), "string")
         else:
-            raise TypeError(f"Cannot compare {v} of type {type(v)} to {kind} column")
+            raise TypeError(
+                f"Cannot compare {v} of type {type(v)} to {kind} column")
 
     def convert_values(self):
         pass
@@ -268,7 +276,8 @@ class FilterBinOp(BinOp):
     def __repr__(self) -> str:
         if self.filter is None:
             return "Filter: Not Initialized"
-        return pprint_thing(f"[Filter : [{self.filter[0]}] -> [{self.filter[1]}]")
+        return pprint_thing(
+            f"[Filter : [{self.filter[0]}] -> [{self.filter[1]}]")
 
     def invert(self):
         """invert the filter"""
@@ -324,6 +333,7 @@ class FilterBinOp(BinOp):
 
 
 class JointFilterBinOp(FilterBinOp):
+
     def format(self):
         raise NotImplementedError("unable to collapse Joint Filters")
 
@@ -332,6 +342,7 @@ class JointFilterBinOp(FilterBinOp):
 
 
 class ConditionBinOp(BinOp):
+
     def __repr__(self) -> str:
         return pprint_thing(f"[Condition : [{self.condition}]]")
 
@@ -341,8 +352,7 @@ class ConditionBinOp(BinOp):
         #    self.condition = "~(%s)" % self.condition
         # return self
         raise NotImplementedError(
-            "cannot use an invert condition when passing to numexpr"
-        )
+            "cannot use an invert condition when passing to numexpr")
 
     def format(self):
         """return the actual ne format"""
@@ -378,12 +388,14 @@ class ConditionBinOp(BinOp):
 
 
 class JointConditionBinOp(ConditionBinOp):
+
     def evaluate(self):
         self.condition = f"({self.lhs.condition} {self.op} {self.rhs.condition})"
         return self
 
 
 class UnaryOp(ops.UnaryOp):
+
     def prune(self, klass):
 
         if self.op != "~":
@@ -392,13 +404,11 @@ class UnaryOp(ops.UnaryOp):
         operand = self.operand
         operand = operand.prune(klass)
 
-        if operand is not None and (
-            issubclass(klass, ConditionBinOp)
-            and operand.condition is not None
-            or not issubclass(klass, ConditionBinOp)
-            and issubclass(klass, FilterBinOp)
-            and operand.filter is not None
-        ):
+        if operand is not None and (issubclass(klass, ConditionBinOp)
+                                    and operand.condition is not None
+                                    or not issubclass(klass, ConditionBinOp)
+                                    and issubclass(klass, FilterBinOp)
+                                    and operand.filter is not None):
             return operand.invert()
         return None
 
@@ -429,9 +439,9 @@ class PyTablesExprVisitor(BaseExprVisitor):
         return self.visit(node.value).value
 
     def visit_Assign(self, node, **kwargs):
-        cmpr = ast.Compare(
-            ops=[ast.Eq()], left=node.targets[0], comparators=[node.value]
-        )
+        cmpr = ast.Compare(ops=[ast.Eq()],
+                           left=node.targets[0],
+                           comparators=[node.value])
         return self.visit(cmpr)
 
     def visit_Subscript(self, node, **kwargs):
@@ -452,8 +462,7 @@ class PyTablesExprVisitor(BaseExprVisitor):
             return self.const_type(value[slobj], self.env)
         except TypeError as err:
             raise ValueError(
-                f"cannot subscript {repr(value)} with {repr(slobj)}"
-            ) from err
+                f"cannot subscript {repr(value)} with {repr(slobj)}") from err
 
     def visit_Attribute(self, node, **kwargs):
         attr = node.attr
@@ -506,10 +515,8 @@ def _validate_where(w):
     TypeError : An invalid data type was passed in for w (e.g. dict).
     """
     if not (isinstance(w, (PyTablesExpr, str)) or is_list_like(w)):
-        raise TypeError(
-            "where must be passed as a string, PyTablesExpr, "
-            "or list-like of PyTablesExpr"
-        )
+        raise TypeError("where must be passed as a string, PyTablesExpr, "
+                        "or list-like of PyTablesExpr")
 
     return w
 
@@ -608,15 +615,13 @@ class PyTablesExpr(expr.Expr):
         except AttributeError as err:
             raise ValueError(
                 f"cannot process expression [{self.expr}], [{self}] "
-                "is not a valid condition"
-            ) from err
+                "is not a valid condition") from err
         try:
             self.filter = self.terms.prune(FilterBinOp)
         except AttributeError as err:
             raise ValueError(
                 f"cannot process expression [{self.expr}], [{self}] "
-                "is not a valid filter"
-            ) from err
+                "is not a valid filter") from err
 
         return self.condition, self.filter
 
@@ -647,7 +652,8 @@ def maybe_expression(s) -> bool:
     """loose checking if s is a pytables-acceptable expression"""
     if not isinstance(s, str):
         return False
-    ops = PyTablesExprVisitor.binary_ops + PyTablesExprVisitor.unary_ops + ("=",)
+    ops = PyTablesExprVisitor.binary_ops + PyTablesExprVisitor.unary_ops + (
+        "=", )
 
     # make sure we have an op at least
     return any(op in s for op in ops)

@@ -146,9 +146,10 @@ class RangeIndex(NumericIndex):
         return cls._simple_new(rng, name=name)
 
     @classmethod
-    def from_range(
-        cls, data: range, name=None, dtype: Dtype | None = None
-    ) -> RangeIndex:
+    def from_range(cls,
+                   data: range,
+                   name=None,
+                   dtype: Dtype | None = None) -> RangeIndex:
         """
         Create RangeIndex from a range object.
 
@@ -159,8 +160,7 @@ class RangeIndex(NumericIndex):
         if not isinstance(data, range):
             raise TypeError(
                 f"{cls.__name__}(...) must be called with object coercible to a "
-                f"range, {repr(data)} was passed"
-            )
+                f"range, {repr(data)} was passed")
         cls._validate_dtype(dtype)
         return cls._simple_new(data, name=name)
 
@@ -232,11 +232,9 @@ class RangeIndex(NumericIndex):
         return header + [f"{x:<{max_length}}" for x in self._range]
 
     # --------------------------------------------------------------------
-    _deprecation_message = (
-        "RangeIndex.{} is deprecated and will be "
-        "removed in a future version. Use RangeIndex.{} "
-        "instead"
-    )
+    _deprecation_message = ("RangeIndex.{} is deprecated and will be "
+                            "removed in a future version. Use RangeIndex.{} "
+                            "instead")
 
     @property
     def start(self) -> int:
@@ -316,8 +314,7 @@ class RangeIndex(NumericIndex):
         rng = self._range
         return getsizeof(rng) + sum(
             getsizeof(getattr(rng, attr_name))
-            for attr_name in ["start", "stop", "step"]
-        )
+            for attr_name in ["start", "stop", "step"])
 
     def memory_usage(self, deep: bool = False) -> int:
         """
@@ -397,9 +394,10 @@ class RangeIndex(NumericIndex):
         tolerance=None,
     ) -> npt.NDArray[np.intp]:
         if com.any_not_none(method, tolerance, limit):
-            return super()._get_indexer(
-                target, method=method, tolerance=tolerance, limit=limit
-            )
+            return super()._get_indexer(target,
+                                        method=method,
+                                        tolerance=tolerance,
+                                        limit=limit)
 
         if self.step > 0:
             start, stop, step = self.start, self.stop, self.step
@@ -466,7 +464,8 @@ class RangeIndex(NumericIndex):
         no_steps = len(self) - 1
         if no_steps == -1:
             return np.nan
-        elif (meth == "min" and self.step > 0) or (meth == "max" and self.step < 0):
+        elif (meth == "min" and self.step > 0) or (meth == "max"
+                                                   and self.step < 0):
             return self.start
 
         return self.start + self.step * no_steps
@@ -510,7 +509,9 @@ class RangeIndex(NumericIndex):
         return result
 
     def factorize(
-        self, sort: bool = False, na_sentinel: int | None = -1
+        self,
+        sort: bool = False,
+        na_sentinel: int | None = -1
     ) -> tuple[npt.NDArray[np.intp], RangeIndex]:
         codes = np.arange(len(self), dtype=np.intp)
         uniques = self
@@ -591,7 +592,8 @@ class RangeIndex(NumericIndex):
 
         # calculate parameters for the RangeIndex describing the
         # intersection disregarding the lower bounds
-        tmp_start = first.start + (second.start - first.start) * first.step // gcd * s
+        tmp_start = first.start + (second.start -
+                                   first.start) * first.step // gcd * s
         new_step = first.step * second.step // gcd
         new_range = range(tmp_start, int_high, new_step)
         new_index = self._simple_new(new_range)
@@ -669,34 +671,26 @@ class RangeIndex(NumericIndex):
             start_r = min(start_s, start_o)
             end_r = max(end_s, end_o)
             if step_o == step_s:
-                if (
-                    (start_s - start_o) % step_s == 0
-                    and (start_s - end_o) <= step_s
-                    and (start_o - end_s) <= step_s
-                ):
+                if ((start_s - start_o) % step_s == 0
+                        and (start_s - end_o) <= step_s
+                        and (start_o - end_s) <= step_s):
                     return type(self)(start_r, end_r + step_s, step_s)
-                if (
-                    (step_s % 2 == 0)
-                    and (abs(start_s - start_o) == step_s / 2)
-                    and (abs(end_s - end_o) == step_s / 2)
-                ):
+                if ((step_s % 2 == 0)
+                        and (abs(start_s - start_o) == step_s / 2)
+                        and (abs(end_s - end_o) == step_s / 2)):
                     # e.g. range(0, 10, 2) and range(1, 11, 2)
                     #  but not range(0, 20, 4) and range(1, 21, 4) GH#44019
                     return type(self)(start_r, end_r + step_s / 2, step_s / 2)
 
             elif step_o % step_s == 0:
-                if (
-                    (start_o - start_s) % step_s == 0
-                    and (start_o + step_s >= start_s)
-                    and (end_o - step_s <= end_s)
-                ):
+                if ((start_o - start_s) % step_s == 0
+                        and (start_o + step_s >= start_s)
+                        and (end_o - step_s <= end_s)):
                     return type(self)(start_r, end_r + step_s, step_s)
             elif step_s % step_o == 0:
-                if (
-                    (start_s - start_o) % step_o == 0
-                    and (start_s + step_o >= start_o)
-                    and (end_s - step_o <= end_o)
-                ):
+                if ((start_s - start_o) % step_o == 0
+                        and (start_s + step_o >= start_o)
+                        and (end_s - step_o <= end_o)):
                     return type(self)(start_r, end_r + step_o, step_o)
 
         return super()._union(other, sort=sort)
@@ -740,14 +734,16 @@ class RangeIndex(NumericIndex):
             else:
                 return super()._difference(other, sort=sort)
 
-        elif len(overlap) == 2 and overlap[0] == first[0] and overlap[-1] == first[-1]:
+        elif len(overlap) == 2 and overlap[0] == first[0] and overlap[
+                -1] == first[-1]:
             # e.g. range(-8, 20, 7) and range(13, -9, -3)
             return self[1:-1]
 
         if overlap.step == first.step:
             if overlap[0] == first.start:
                 # The difference is everything after the intersection
-                new_rng = range(overlap[-1] + first.step, first.stop, first.step)
+                new_rng = range(overlap[-1] + first.step, first.stop,
+                                first.step)
             elif overlap[-1] == first[-1]:
                 # The difference is everything before the intersection
                 new_rng = range(first.start, overlap[0], first.step)
@@ -766,11 +762,13 @@ class RangeIndex(NumericIndex):
             assert len(self) > 1
 
             if overlap.step == first.step * 2:
-                if overlap[0] == first[0] and overlap[-1] in (first[-1], first[-2]):
+                if overlap[0] == first[0] and overlap[-1] in (first[-1],
+                                                              first[-2]):
                     # e.g. range(1, 10, 1) and range(1, 10, 2)
                     new_rng = first[1::2]
 
-                elif overlap[0] == first[1] and overlap[-1] in (first[-1], first[-2]):
+                elif overlap[0] == first[1] and overlap[-1] in (first[-1],
+                                                                first[-2]):
                     # e.g. range(1, 10, 1) and range(2, 10, 2)
                     new_rng = first[::2]
 
@@ -788,7 +786,10 @@ class RangeIndex(NumericIndex):
 
         return new_index
 
-    def symmetric_difference(self, other, result_name: Hashable = None, sort=None):
+    def symmetric_difference(self,
+                             other,
+                             result_name: Hashable = None,
+                             sort=None):
         if not isinstance(other, RangeIndex) or sort is not None:
             return super().symmetric_difference(other, result_name, sort)
 
@@ -816,7 +817,8 @@ class RangeIndex(NumericIndex):
                 return self[::2]
 
         elif lib.is_list_like(loc):
-            slc = lib.maybe_indices_to_slice(np.asarray(loc, dtype=np.intp), len(self))
+            slc = lib.maybe_indices_to_slice(np.asarray(loc, dtype=np.intp),
+                                             len(self))
 
             if isinstance(slc, slice):
                 # defer to RangeIndex._difference, which is optimized to return
@@ -886,11 +888,12 @@ class RangeIndex(NumericIndex):
 
                 step = rng.start - start
 
-            non_consecutive = (step != rng.step and len(rng) > 1) or (
-                next_ is not None and rng.start != next_
-            )
+            non_consecutive = (step != rng.step
+                               and len(rng) > 1) or (next_ is not None
+                                                     and rng.start != next_)
             if non_consecutive:
-                result = Int64Index(np.concatenate([x._values for x in rng_indexes]))
+                result = Int64Index(
+                    np.concatenate([x._values for x in rng_indexes]))
                 return result.rename(name)
 
             if step is not None:
@@ -932,12 +935,10 @@ class RangeIndex(NumericIndex):
                     f"index {key} is out of bounds for axis 0 with size {len(self)}"
                 ) from err
         elif is_scalar(key):
-            raise IndexError(
-                "only integers, slices (`:`), "
-                "ellipsis (`...`), numpy.newaxis (`None`) "
-                "and integer or boolean "
-                "arrays are valid indices"
-            )
+            raise IndexError("only integers, slices (`:`), "
+                             "ellipsis (`...`), numpy.newaxis (`None`) "
+                             "and integer or boolean "
+                             "arrays are valid indices")
         # fall back to Int64Index
         return super().__getitem__(key)
 
@@ -952,7 +953,9 @@ class RangeIndex(NumericIndex):
     def __floordiv__(self, other):
 
         if is_integer(other) and other != 0:
-            if len(self) == 0 or self.start % other == 0 and self.step % other == 0:
+            if len(
+                    self
+            ) == 0 or self.start % other == 0 and self.step % other == 0:
                 start = self.start // other
                 step = self.step // other
                 stop = start + len(self) * step
@@ -1003,14 +1006,14 @@ class RangeIndex(NumericIndex):
             return super()._arith_method(other, op)
 
         if op in [
-            operator.pow,
-            ops.rpow,
-            operator.mod,
-            ops.rmod,
-            operator.floordiv,
-            ops.rfloordiv,
-            divmod,
-            ops.rdivmod,
+                operator.pow,
+                ops.rpow,
+                operator.mod,
+                ops.rmod,
+                operator.floordiv,
+                ops.rfloordiv,
+                divmod,
+                ops.rdivmod,
         ]:
             return super()._arith_method(other, op)
 

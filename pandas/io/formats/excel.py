@@ -72,6 +72,7 @@ class ExcelCell:
 
 
 class CssExcelCell(ExcelCell):
+
     def __init__(
         self,
         row: int,
@@ -86,11 +87,14 @@ class CssExcelCell(ExcelCell):
     ):
         if css_styles and css_converter:
             css = ";".join(
-                [a + ":" + str(v) for (a, v) in css_styles[css_row, css_col]]
-            )
+                [a + ":" + str(v) for (a, v) in css_styles[css_row, css_col]])
             style = css_converter(css)
 
-        return super().__init__(row=row, col=col, val=val, style=style, **kwargs)
+        return super().__init__(row=row,
+                                col=col,
+                                val=val,
+                                style=style,
+                                **kwargs)
 
 
 class CSSToExcelConverter:
@@ -186,7 +190,8 @@ class CSSToExcelConverter:
         properties = self.compute_css(declarations_str, self.inherited)
         return self.build_xlstyle(properties)
 
-    def build_xlstyle(self, props: Mapping[str, str]) -> dict[str, dict[str, str]]:
+    def build_xlstyle(self, props: Mapping[str,
+                                           str]) -> dict[str, dict[str, str]]:
         out = {
             "alignment": self.build_alignment(props),
             "border": self.build_border(props),
@@ -210,7 +215,8 @@ class CSSToExcelConverter:
         remove_none(out)
         return out
 
-    def build_alignment(self, props: Mapping[str, str]) -> dict[str, bool | str | None]:
+    def build_alignment(
+            self, props: Mapping[str, str]) -> dict[str, bool | str | None]:
         # TODO: text-indent, padding-left -> alignment.indent
         return {
             "horizontal": props.get("text-align"),
@@ -230,21 +236,24 @@ class CSSToExcelConverter:
         return bool(props["white-space"] not in ("nowrap", "pre", "pre-line"))
 
     def build_border(
-        self, props: Mapping[str, str]
-    ) -> dict[str, dict[str, str | None]]:
+            self, props: Mapping[str,
+                                 str]) -> dict[str, dict[str, str | None]]:
         return {
             side: {
-                "style": self._border_style(
+                "style":
+                self._border_style(
                     props.get(f"border-{side}-style"),
                     props.get(f"border-{side}-width"),
                     self.color_to_excel(props.get(f"border-{side}-color")),
                 ),
-                "color": self.color_to_excel(props.get(f"border-{side}-color")),
+                "color":
+                self.color_to_excel(props.get(f"border-{side}-color")),
             }
             for side in ["top", "right", "bottom", "left"]
         }
 
-    def _border_style(self, style: str | None, width: str | None, color: str | None):
+    def _border_style(self, style: str | None, width: str | None,
+                      color: str | None):
         # convert styles and widths to openxml, one of:
         #       'dashDot'
         #       'dashDotDot'
@@ -313,16 +322,21 @@ class CSSToExcelConverter:
         #       -excel-pattern-bgcolor and -excel-pattern-type
         fill_color = props.get("background-color")
         if fill_color not in (None, "transparent", "none"):
-            return {"fgColor": self.color_to_excel(fill_color), "patternType": "solid"}
+            return {
+                "fgColor": self.color_to_excel(fill_color),
+                "patternType": "solid"
+            }
 
-    def build_number_format(self, props: Mapping[str, str]) -> dict[str, str | None]:
+    def build_number_format(self,
+                            props: Mapping[str, str]) -> dict[str, str | None]:
         fc = props.get("number-format")
         fc = fc.replace("§", ";") if isinstance(fc, str) else fc
         return {"format_code": fc}
 
     def build_font(
-        self, props: Mapping[str, str]
-    ) -> dict[str, bool | int | float | str | None]:
+        self,
+        props: Mapping[str,
+                       str]) -> dict[str, bool | int | float | str | None]:
         font_names = self._get_font_names(props)
         decoration = self._get_decoration(props)
         return {
@@ -515,7 +529,8 @@ class ExcelFormatter:
 
             if len(Index(cols).intersection(df.columns)) != len(set(cols)):
                 # Deprecated in GH#17295, enforced in 1.0.0
-                raise KeyError("Not all names specified in 'columns' are found")
+                raise KeyError(
+                    "Not all names specified in 'columns' are found")
 
             self.df = df.reindex(columns=cols)
 
@@ -530,14 +545,19 @@ class ExcelFormatter:
     @property
     def header_style(self):
         return {
-            "font": {"bold": True},
+            "font": {
+                "bold": True
+            },
             "borders": {
                 "top": "thin",
                 "right": "thin",
                 "bottom": "thin",
                 "left": "thin",
             },
-            "alignment": {"horizontal": "center", "vertical": "top"},
+            "alignment": {
+                "horizontal": "center",
+                "vertical": "top"
+            },
         }
 
     def _format_value(self, val):
@@ -551,11 +571,9 @@ class ExcelFormatter:
             elif self.float_format is not None:
                 val = float(self.float_format % val)
         if getattr(val, "tzinfo", None) is not None:
-            raise ValueError(
-                "Excel does not support datetimes with "
-                "timezones. Please ensure that datetimes "
-                "are timezone unaware before writing to Excel."
-            )
+            raise ValueError("Excel does not support datetimes with "
+                             "timezones. Please ensure that datetimes "
+                             "are timezone unaware before writing to Excel.")
         return val
 
     def _format_header_mi(self) -> Iterable[ExcelCell]:
@@ -563,16 +581,15 @@ class ExcelFormatter:
             if not self.index:
                 raise NotImplementedError(
                     "Writing to Excel with MultiIndex columns and no "
-                    "index ('index'=False) is not yet implemented."
-                )
+                    "index ('index'=False) is not yet implemented.")
 
         if not (self._has_aliases or self.header):
             return
 
         columns = self.columns
-        level_strs = columns.format(
-            sparsify=self.merge_cells, adjoin=False, names=False
-        )
+        level_strs = columns.format(sparsify=self.merge_cells,
+                                    adjoin=False,
+                                    names=False)
         level_lengths = get_level_lengths(level_strs)
         coloffset = 0
         lnum = 0
@@ -591,8 +608,7 @@ class ExcelFormatter:
                 )
 
             for lnum, (spans, levels, level_codes) in enumerate(
-                zip(level_lengths, columns.levels, columns.codes)
-            ):
+                    zip(level_lengths, columns.levels, columns.codes)):
                 values = levels.take(level_codes)
                 for i, span_val in spans.items():
                     mergestart, mergeend = None, None
@@ -640,10 +656,8 @@ class ExcelFormatter:
             if self._has_aliases:
                 self.header = cast(Sequence, self.header)
                 if len(self.header) != len(self.columns):
-                    raise ValueError(
-                        f"Writing {len(self.columns)} cols "
-                        f"but got {len(self.header)} aliases"
-                    )
+                    raise ValueError(f"Writing {len(self.columns)} cols "
+                                     f"but got {len(self.header)} aliases")
                 else:
                     colnames = self.header
 
@@ -670,14 +684,12 @@ class ExcelFormatter:
         gen2: Iterable[ExcelCell] = ()
 
         if self.df.index.names:
-            row = [x if x is not None else "" for x in self.df.index.names] + [
-                ""
-            ] * len(self.columns)
+            row = [x if x is not None else ""
+                   for x in self.df.index.names] + [""] * len(self.columns)
             if reduce(lambda x, y: x and y, map(lambda x: x != "", row)):
-                gen2 = (
-                    ExcelCell(self.rowcounter, colindex, val, self.header_style)
-                    for colindex, val in enumerate(row)
-                )
+                gen2 = (ExcelCell(self.rowcounter, colindex, val,
+                                  self.header_style)
+                        for colindex, val in enumerate(row))
                 self.rowcounter += 1
         return itertools.chain(gen, gen2)
 
@@ -696,8 +708,7 @@ class ExcelFormatter:
             # check aliases
             # if list only take first as this is not a MultiIndex
             if self.index_label and isinstance(
-                self.index_label, (list, tuple, np.ndarray, Index)
-            ):
+                    self.index_label, (list, tuple, np.ndarray, Index)):
                 index_label = self.index_label[0]
             # if string good to go
             elif self.index_label and isinstance(self.index_label, str):
@@ -709,7 +720,8 @@ class ExcelFormatter:
                 self.rowcounter += 1
 
             if index_label and self.header is not False:
-                yield ExcelCell(self.rowcounter - 1, 0, index_label, self.header_style)
+                yield ExcelCell(self.rowcounter - 1, 0, index_label,
+                                self.header_style)
 
             # write index_values
             index_values = self.df.index
@@ -743,8 +755,7 @@ class ExcelFormatter:
             index_labels = self.df.index.names
             # check for aliases
             if self.index_label and isinstance(
-                self.index_label, (list, tuple, np.ndarray, Index)
-            ):
+                    self.index_label, (list, tuple, np.ndarray, Index)):
                 index_labels = self.index_label
 
             # MultiIndex columns require an extra row
@@ -758,18 +769,19 @@ class ExcelFormatter:
             if com.any_not_none(*index_labels) and self.header is not False:
 
                 for cidx, name in enumerate(index_labels):
-                    yield ExcelCell(self.rowcounter - 1, cidx, name, self.header_style)
+                    yield ExcelCell(self.rowcounter - 1, cidx, name,
+                                    self.header_style)
 
             if self.merge_cells:
                 # Format hierarchical rows as merged cells.
-                level_strs = self.df.index.format(
-                    sparsify=True, adjoin=False, names=False
-                )
+                level_strs = self.df.index.format(sparsify=True,
+                                                  adjoin=False,
+                                                  names=False)
                 level_lengths = get_level_lengths(level_strs)
 
-                for spans, levels, level_codes in zip(
-                    level_lengths, self.df.index.levels, self.df.index.codes
-                ):
+                for spans, levels, level_codes in zip(level_lengths,
+                                                      self.df.index.levels,
+                                                      self.df.index.codes):
 
                     values = levels.take(
                         level_codes,
@@ -836,7 +848,8 @@ class ExcelFormatter:
                 )
 
     def get_formatted_cells(self) -> Iterable[ExcelCell]:
-        for cell in itertools.chain(self._format_header(), self._format_body()):
+        for cell in itertools.chain(self._format_header(),
+                                    self._format_body()):
             cell.val = self._format_value(cell.val)
             yield cell
 
@@ -884,8 +897,7 @@ class ExcelFormatter:
         if num_rows > self.max_rows or num_cols > self.max_cols:
             raise ValueError(
                 f"This sheet is too large! Your sheet size is: {num_rows}, {num_cols} "
-                f"Max sheet size is: {self.max_rows}, {self.max_cols}"
-            )
+                f"Max sheet size is: {self.max_rows}, {self.max_cols}")
 
         formatted_cells = self.get_formatted_cells()
         if isinstance(writer, ExcelWriter):
@@ -894,8 +906,9 @@ class ExcelFormatter:
             # error: Cannot instantiate abstract class 'ExcelWriter' with abstract
             # attributes 'engine', 'save', 'supported_extensions' and 'write_cells'
             writer = ExcelWriter(  # type: ignore[abstract]
-                writer, engine=engine, storage_options=storage_options
-            )
+                writer,
+                engine=engine,
+                storage_options=storage_options)
             need_save = True
 
         try:

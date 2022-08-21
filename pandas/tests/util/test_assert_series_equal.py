@@ -93,9 +93,15 @@ def test_series_not_equal_value_mismatch(data1, data2):
 @pytest.mark.parametrize(
     "kwargs",
     [
-        {"dtype": "float64"},  # dtype mismatch
-        {"index": [1, 2, 4]},  # index mismatch
-        {"name": "foo"},  # name mismatch
+        {
+            "dtype": "float64"
+        },  # dtype mismatch
+        {
+            "index": [1, 2, 4]
+        },  # index mismatch
+        {
+            "name": "foo"
+        },  # name mismatch
     ],
 )
 def test_series_not_equal_metadata_mismatch(kwargs):
@@ -114,9 +120,7 @@ def test_less_precise(data1, data2, dtype, decimals):
     s1 = Series([data1], dtype=dtype)
     s2 = Series([data2], dtype=dtype)
 
-    if decimals in (5, 10) or (
-        decimals >= 3 and abs(data1 - data2) >= 0.0005
-    ):
+    if decimals in (5, 10) or (decimals >= 3 and abs(data1 - data2) >= 0.0005):
         if is_extension_array_dtype(dtype):
             msg = "ExtensionArray are different"
         else:
@@ -139,11 +143,19 @@ def test_less_precise(data1, data2, dtype, decimals):
         # MultiIndex
         (
             DataFrame.from_records(
-                {"a": [1, 2], "b": [2.1, 1.5], "c": ["l1", "l2"]}, index=["a", "b"]
-            ).c,
+                {
+                    "a": [1, 2],
+                    "b": [2.1, 1.5],
+                    "c": ["l1", "l2"]
+                },
+                index=["a", "b"]).c,
             DataFrame.from_records(
-                {"a": [1.0, 2.0], "b": [2.1, 1.5], "c": ["l1", "l2"]}, index=["a", "b"]
-            ).c,
+                {
+                    "a": [1.0, 2.0],
+                    "b": [2.1, 1.5],
+                    "c": ["l1", "l2"]
+                },
+                index=["a", "b"]).c,
             "MultiIndex level \\[0\\] are different",
         ),
     ],
@@ -272,6 +284,7 @@ Attribute "dtype" are different
 
 
 def test_series_equal_series_type():
+
     class MySeries(Series):
         pass
 

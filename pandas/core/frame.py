@@ -224,16 +224,22 @@ if TYPE_CHECKING:
 # Docstring templates
 
 _shared_doc_kwargs = {
-    "axes": "index, columns",
-    "klass": "DataFrame",
-    "axes_single_arg": "{0 or 'index', 1 or 'columns'}",
-    "axis": """axis : {0 or 'index', 1 or 'columns'}, default 0
+    "axes":
+    "index, columns",
+    "klass":
+    "DataFrame",
+    "axes_single_arg":
+    "{0 or 'index', 1 or 'columns'}",
+    "axis":
+    """axis : {0 or 'index', 1 or 'columns'}, default 0
         If 0 or 'index': apply function to each column.
         If 1 or 'columns': apply function to each row.""",
-    "inplace": """
+    "inplace":
+    """
     inplace : bool, default False
         If True, performs operation inplace and returns None.""",
-    "optional_by": """
+    "optional_by":
+    """
         by : str or list of str
             Name or list of names to sort by.
 
@@ -241,12 +247,15 @@ _shared_doc_kwargs = {
               levels and/or column labels.
             - if `axis` is 1 or `'columns'` then `by` may contain column
               levels and/or index labels.""",
-    "optional_labels": """labels : array-like, optional
+    "optional_labels":
+    """labels : array-like, optional
             New labels / index to conform the axis specified by 'axis' to.""",
-    "optional_axis": """axis : int or str, optional
+    "optional_axis":
+    """axis : int or str, optional
             Axis to target. Can be either the axis name ('index', 'columns')
             or number (0, 1).""",
-    "replace_iloc": """
+    "replace_iloc":
+    """
     This differs from updating with ``.loc`` or ``.iloc``, which require
     you to specify a location to update with some value.""",
 }
@@ -453,7 +462,6 @@ ValueError: columns overlap but no suffix specified:
 3   bar      8
 """
 
-
 # -----------------------------------------------------------------------
 # DataFrame class
 
@@ -619,11 +627,9 @@ class DataFrame(NDFrame, OpsMixin):
             if isinstance(data, dict):
                 # retain pre-GH#38939 default behavior
                 copy = True
-            elif (
-                manager == "array"
-                and isinstance(data, (np.ndarray, ExtensionArray))
-                and data.ndim == 2
-            ):
+            elif (manager == "array"
+                  and isinstance(data, (np.ndarray, ExtensionArray))
+                  and data.ndim == 2):
                 # INFO(ArrayManager) by default copy the 2D input array to get
                 # contiguous 1D arrays
                 copy = True
@@ -631,13 +637,22 @@ class DataFrame(NDFrame, OpsMixin):
                 copy = False
 
         if isinstance(data, (BlockManager, ArrayManager)):
-            mgr = self._init_mgr(
-                data, axes={"index": index, "columns": columns}, dtype=dtype, copy=copy
-            )
+            mgr = self._init_mgr(data,
+                                 axes={
+                                     "index": index,
+                                     "columns": columns
+                                 },
+                                 dtype=dtype,
+                                 copy=copy)
 
         elif isinstance(data, dict):
             # GH#38939 de facto copy defaults to False only in non-dict cases
-            mgr = dict_to_mgr(data, index, columns, dtype=dtype, copy=copy, typ=manager)
+            mgr = dict_to_mgr(data,
+                              index,
+                              columns,
+                              dtype=dtype,
+                              copy=copy,
+                              typ=manager)
         elif isinstance(data, ma.MaskedArray):
             import numpy.ma.mrecords as mrecords
 
@@ -721,7 +736,8 @@ class DataFrame(NDFrame, OpsMixin):
                         # error: Argument 1 to "ensure_index" has incompatible type
                         # "Collection[Any]"; expected "Union[Union[Union[ExtensionArray,
                         # ndarray], Index, Series], Sequence[Any]]"
-                        columns = ensure_index(columns)  # type: ignore[arg-type]
+                        columns = ensure_index(
+                            columns)  # type: ignore[arg-type]
                     arrays, columns, index = nested_data_to_arrays(
                         # error: Argument 3 to "nested_data_to_arrays" has incompatible
                         # type "Optional[Collection[Any]]"; expected "Optional[Index]"
@@ -779,7 +795,11 @@ class DataFrame(NDFrame, OpsMixin):
                     construct_1d_arraylike_from_scalar(data, len(index), dtype)
                     for _ in range(len(columns))
                 ]
-                mgr = arrays_to_mgr(values, columns, index, dtype=None, typ=manager)
+                mgr = arrays_to_mgr(values,
+                                    columns,
+                                    index,
+                                    dtype=None,
+                                    typ=manager)
             else:
                 arr2d = construct_2d_arraylike_from_scalar(
                     data,
@@ -901,8 +921,7 @@ class DataFrame(NDFrame, OpsMixin):
     # "_values" incompatible with return type "ndarray" in supertype "NDFrame"
     @property
     def _values(  # type: ignore[override]
-        self,
-    ) -> np.ndarray | DatetimeArray | TimedeltaArray | PeriodArray:
+            self, ) -> np.ndarray | DatetimeArray | TimedeltaArray | PeriodArray:
         """
         Analogue to ._values that may return a 2D ExtensionArray.
         """
@@ -911,7 +930,8 @@ class DataFrame(NDFrame, OpsMixin):
         mgr = self._mgr
 
         if isinstance(mgr, ArrayManager):
-            if len(mgr.arrays) == 1 and not is_1d_only_ea_dtype(mgr.arrays[0].dtype):
+            if len(mgr.arrays) == 1 and not is_1d_only_ea_dtype(
+                    mgr.arrays[0].dtype):
                 # error: Item "ExtensionArray" of "Union[ndarray, ExtensionArray]"
                 # has no attribute "reshape"
                 return mgr.arrays[0].reshape(-1, 1)  # type: ignore[union-attr]
@@ -927,7 +947,8 @@ class DataFrame(NDFrame, OpsMixin):
             return self.values
 
         # more generally, whatever we allow in NDArrayBackedExtensionBlock
-        arr = cast("np.ndarray | DatetimeArray | TimedeltaArray | PeriodArray", arr)
+        arr = cast("np.ndarray | DatetimeArray | TimedeltaArray | PeriodArray",
+                   arr)
         return arr.T
 
     # ----------------------------------------------------------------------
@@ -957,8 +978,7 @@ class DataFrame(NDFrame, OpsMixin):
 
         # exceed max columns
         if (max_columns and nb_columns > max_columns) or (
-            (not ignore_width) and width and nb_columns > (width // 2)
-        ):
+                (not ignore_width) and width and nb_columns > (width // 2)):
             return False
 
         # used by repr_html under IPython notebook or scripts ignore terminal
@@ -966,7 +986,8 @@ class DataFrame(NDFrame, OpsMixin):
         if ignore_width or not console.in_interactive_session():
             return True
 
-        if get_option("display.width") is not None or console.in_ipython_frontend():
+        if get_option(
+                "display.width") is not None or console.in_ipython_frontend():
             # check at least the column row for excessive width
             max_rows = 1
         else:
@@ -983,7 +1004,7 @@ class DataFrame(NDFrame, OpsMixin):
 
         if max_rows is not None:  # unlimited rows
             # min of two, where one may be None
-            d = d.iloc[: min(max_rows, len(d))]
+            d = d.iloc[:min(max_rows, len(d))]
         else:
             return True
 
@@ -998,9 +1019,8 @@ class DataFrame(NDFrame, OpsMixin):
         True if the repr should show the info view.
         """
         info_repr_option = get_option("display.large_repr") == "info"
-        return info_repr_option and not (
-            self._repr_fits_horizontal_() and self._repr_fits_vertical_()
-        )
+        return info_repr_option and not (self._repr_fits_horizontal_()
+                                         and self._repr_fits_vertical_())
 
     def __repr__(self) -> str:
         """
@@ -1118,7 +1138,8 @@ class DataFrame(NDFrame, OpsMixin):
         "every integers corresponds with one column. If a dict is given, the key "
         "references the column, while the value defines the space to use.",
     )
-    @Substitution(shared_params=fmt.common_docstring, returns=fmt.return_docstring)
+    @Substitution(shared_params=fmt.common_docstring,
+                  returns=fmt.return_docstring)
     def to_string(
         self,
         buf: FilePath | WriteBuffer[str] | None = None,
@@ -1217,9 +1238,7 @@ class DataFrame(NDFrame, OpsMixin):
 
         return Styler(self)
 
-    _shared_docs[
-        "items"
-    ] = r"""
+    _shared_docs["items"] = r"""
         Iterate over (column name, Series) pairs.
 
         Iterates over the DataFrame columns, returning a tuple with
@@ -1334,9 +1353,9 @@ class DataFrame(NDFrame, OpsMixin):
             s = klass(v, index=columns, name=k)
             yield k, s
 
-    def itertuples(
-        self, index: bool = True, name: str | None = "Pandas"
-    ) -> Iterable[tuple[Any, ...]]:
+    def itertuples(self,
+                   index: bool = True,
+                   name: str | None = "Pandas") -> Iterable[tuple[Any, ...]]:
         """
         Iterate over DataFrame rows as namedtuples.
 
@@ -1411,8 +1430,7 @@ class DataFrame(NDFrame, OpsMixin):
             # https://github.com/python/mypy/issues/9046
             # error: namedtuple() expects a string literal as the first argument
             itertuple = collections.namedtuple(  # type: ignore[misc]
-                name, fields, rename=True
-            )
+                name, fields, rename=True)
             return map(itertuple._make, zip(*arrays))
 
         # fallback to regular tuples
@@ -1511,7 +1529,8 @@ class DataFrame(NDFrame, OpsMixin):
         """
         if isinstance(other, (Series, DataFrame)):
             common = self.columns.union(other.index)
-            if len(common) > len(self.columns) or len(common) > len(other.index):
+            if len(common) > len(self.columns) or len(common) > len(
+                    other.index):
                 raise ValueError("matrices are not aligned")
 
             left = self.reindex(columns=common, copy=False)
@@ -1528,11 +1547,12 @@ class DataFrame(NDFrame, OpsMixin):
                 )
 
         if isinstance(other, DataFrame):
-            return self._constructor(
-                np.dot(lvals, rvals), index=left.index, columns=other.columns
-            )
+            return self._constructor(np.dot(lvals, rvals),
+                                     index=left.index,
+                                     columns=other.columns)
         elif isinstance(other, Series):
-            return self._constructor_sliced(np.dot(lvals, rvals), index=left.index)
+            return self._constructor_sliced(np.dot(lvals, rvals),
+                                            index=left.index)
         elif isinstance(rvals, (np.ndarray, Index)):
             result = np.dot(lvals, rvals)
             if result.ndim == 2:
@@ -1548,13 +1568,13 @@ class DataFrame(NDFrame, OpsMixin):
 
     @overload
     def __matmul__(
-        self, other: AnyArrayLike | DataFrame | Series
-    ) -> DataFrame | Series:
+            self,
+            other: AnyArrayLike | DataFrame | Series) -> DataFrame | Series:
         ...
 
     def __matmul__(
-        self, other: AnyArrayLike | DataFrame | Series
-    ) -> DataFrame | Series:
+            self,
+            other: AnyArrayLike | DataFrame | Series) -> DataFrame | Series:
         """
         Matrix multiplication using binary `@` operator in Python>=3.5.
         """
@@ -1677,7 +1697,8 @@ class DataFrame(NDFrame, OpsMixin):
                     data, index = list(data.values()), list(data.keys())
         elif orient in ("columns", "tight"):
             if columns is not None:
-                raise ValueError(f"cannot use columns parameter with orient='{orient}'")
+                raise ValueError(
+                    f"cannot use columns parameter with orient='{orient}'")
         else:  # pragma: no cover
             raise ValueError("only recognize index or columns for orient")
 
@@ -1876,12 +1897,12 @@ class DataFrame(NDFrame, OpsMixin):
         orient = orient.lower()
         # GH32515
         if orient.startswith(("d", "l", "s", "r", "i")) and orient not in {
-            "dict",
-            "list",
-            "series",
-            "split",
-            "records",
-            "index",
+                "dict",
+                "list",
+                "series",
+                "split",
+                "records",
+                "index",
         }:
             warnings.warn(
                 "Using short name for 'orient' is deprecated. Only the "
@@ -1912,57 +1933,51 @@ class DataFrame(NDFrame, OpsMixin):
             return into_c((k, v.tolist()) for k, v in self.items())
 
         elif orient == "split":
-            return into_c(
+            return into_c((
+                ("index", self.index.tolist()),
+                ("columns", self.columns.tolist()),
                 (
-                    ("index", self.index.tolist()),
-                    ("columns", self.columns.tolist()),
-                    (
-                        "data",
-                        [
-                            list(map(maybe_box_native, t))
-                            for t in self.itertuples(index=False, name=None)
-                        ],
-                    ),
-                )
-            )
+                    "data",
+                    [
+                        list(map(maybe_box_native, t))
+                        for t in self.itertuples(index=False, name=None)
+                    ],
+                ),
+            ))
 
         elif orient == "tight":
-            return into_c(
+            return into_c((
+                ("index", self.index.tolist()),
+                ("columns", self.columns.tolist()),
                 (
-                    ("index", self.index.tolist()),
-                    ("columns", self.columns.tolist()),
-                    (
-                        "data",
-                        [
-                            list(map(maybe_box_native, t))
-                            for t in self.itertuples(index=False, name=None)
-                        ],
-                    ),
-                    ("index_names", list(self.index.names)),
-                    ("column_names", list(self.columns.names)),
-                )
-            )
+                    "data",
+                    [
+                        list(map(maybe_box_native, t))
+                        for t in self.itertuples(index=False, name=None)
+                    ],
+                ),
+                ("index_names", list(self.index.names)),
+                ("column_names", list(self.columns.names)),
+            ))
 
         elif orient == "series":
             return into_c((k, v) for k, v in self.items())
 
         elif orient == "records":
             columns = self.columns.tolist()
-            rows = (
-                dict(zip(columns, row))
-                for row in self.itertuples(index=False, name=None)
-            )
+            rows = (dict(zip(columns, row))
+                    for row in self.itertuples(index=False, name=None))
             return [
-                into_c((k, maybe_box_native(v)) for k, v in row.items()) for row in rows
+                into_c((k, maybe_box_native(v)) for k, v in row.items())
+                for row in rows
             ]
 
         elif orient == "index":
             if not self.index.is_unique:
-                raise ValueError("DataFrame index must be unique for orient='index'.")
-            return into_c(
-                (t[0], dict(zip(self.columns, t[1:])))
-                for t in self.itertuples(name=None)
-            )
+                raise ValueError(
+                    "DataFrame index must be unique for orient='index'.")
+            return into_c((t[0], dict(zip(self.columns, t[1:])))
+                          for t in self.itertuples(name=None))
 
         else:
             raise ValueError(f"orient '{orient}' not understood")
@@ -2162,8 +2177,8 @@ class DataFrame(NDFrame, OpsMixin):
             columns = ensure_index(columns)
 
         def maybe_reorder(
-            arrays: list[ArrayLike], arr_columns: Index, columns: Index, index
-        ) -> tuple[list[ArrayLike], Index, Index | None]:
+                arrays: list[ArrayLike], arr_columns: Index, columns: Index,
+                index) -> tuple[list[ArrayLike], Index, Index | None]:
             """
             If our desired 'columns' do not match the data's pre-existing 'arr_columns',
             we re-order our arrays.  This is like a pre-emptive (cheap) reindex.
@@ -2178,7 +2193,8 @@ class DataFrame(NDFrame, OpsMixin):
                 # for backward compat use an object Index instead of RangeIndex
                 result_index = Index([])
 
-            arrays, arr_columns = reorder_arrays(arrays, arr_columns, columns, length)
+            arrays, arr_columns = reorder_arrays(arrays, arr_columns, columns,
+                                                 length)
             return arrays, arr_columns, result_index
 
         if is_iterator(data):
@@ -2220,8 +2236,7 @@ class DataFrame(NDFrame, OpsMixin):
 
                 arr_columns = Index(arr_columns_list)
                 arrays, arr_columns, result_index = maybe_reorder(
-                    arrays, arr_columns, columns, index
-                )
+                    arrays, arr_columns, columns, index)
 
         elif isinstance(data, (np.ndarray, DataFrame)):
             arrays, columns = to_arrays(data, columns)
@@ -2244,8 +2259,7 @@ class DataFrame(NDFrame, OpsMixin):
                 columns = arr_columns
             else:
                 arrays, arr_columns, result_index = maybe_reorder(
-                    arrays, arr_columns, columns, index
-                )
+                    arrays, arr_columns, columns, index)
 
         if exclude is None:
             exclude = set()
@@ -2262,12 +2276,15 @@ class DataFrame(NDFrame, OpsMixin):
                     result_index = Index([], name=index)
             else:
                 try:
-                    index_data = [arrays[arr_columns.get_loc(field)] for field in index]
+                    index_data = [
+                        arrays[arr_columns.get_loc(field)] for field in index
+                    ]
                 except (KeyError, TypeError):
                     # raised by get_loc, see GH#29258
                     result_index = index
                 else:
-                    result_index = ensure_index_from_sequences(index_data, names=index)
+                    result_index = ensure_index_from_sequences(index_data,
+                                                               names=index)
                     exclude.update(index)
 
         if any(exclude):
@@ -2282,9 +2299,10 @@ class DataFrame(NDFrame, OpsMixin):
 
         return cls(mgr)
 
-    def to_records(
-        self, index=True, column_dtypes=None, index_dtypes=None
-    ) -> np.recarray:
+    def to_records(self,
+                   index=True,
+                   column_dtypes=None,
+                   index_dtypes=None) -> np.recarray:
         """
         Convert DataFrame to a NumPy record array.
 
@@ -2385,9 +2403,14 @@ class DataFrame(NDFrame, OpsMixin):
             elif index_names[0] is None:
                 index_names = ["index"]
 
-            names = [str(name) for name in itertools.chain(index_names, self.columns)]
+            names = [
+                str(name)
+                for name in itertools.chain(index_names, self.columns)
+            ]
         else:
-            arrays = [np.asarray(self.iloc[:, i]) for i in range(len(self.columns))]
+            arrays = [
+                np.asarray(self.iloc[:, i]) for i in range(len(self.columns))
+            ]
             names = [str(c) for c in self.columns]
             index_names = []
 
@@ -2443,7 +2466,11 @@ class DataFrame(NDFrame, OpsMixin):
                 msg = f"Invalid dtype {dtype_mapping} specified for {element} {name}"
                 raise ValueError(msg)
 
-        return np.rec.fromarrays(arrays, dtype={"names": names, "formats": formats})
+        return np.rec.fromarrays(arrays,
+                                 dtype={
+                                     "names": names,
+                                     "formats": formats
+                                 })
 
     @classmethod
     def _from_arrays(
@@ -2619,7 +2646,8 @@ class DataFrame(NDFrame, OpsMixin):
         >>> df.to_stata('animals.dta')  # doctest: +SKIP
         """
         if version not in (114, 117, 118, 119, None):
-            raise ValueError("Only formats 114, 117, 118 and 119 are supported.")
+            raise ValueError(
+                "Only formats 114, 117, 118 and 119 are supported.")
         if version == 114:
             if convert_strl is not None:
                 raise ValueError("strl is not supported in format 114")
@@ -2660,7 +2688,8 @@ class DataFrame(NDFrame, OpsMixin):
         writer.write_file()
 
     @deprecate_kwarg(old_arg_name="fname", new_arg_name="path")
-    def to_feather(self, path: FilePath | WriteBuffer[bytes], **kwargs) -> None:
+    def to_feather(self, path: FilePath | WriteBuffer[bytes],
+                   **kwargs) -> None:
         """
         Write a DataFrame to the binary Feather format.
 
@@ -2860,7 +2889,8 @@ class DataFrame(NDFrame, OpsMixin):
         "            .. versionadded:: 0.25.0\n"
         "                Ability to use str",
     )
-    @Substitution(shared_params=fmt.common_docstring, returns=fmt.return_docstring)
+    @Substitution(shared_params=fmt.common_docstring,
+                  returns=fmt.return_docstring)
     def to_html(
         self,
         buf: FilePath | WriteBuffer[str] | None = None,
@@ -2949,11 +2979,13 @@ class DataFrame(NDFrame, OpsMixin):
 
     @doc(
         storage_options=_shared_docs["storage_options"],
-        compression_options=_shared_docs["compression_options"] % "path_or_buffer",
+        compression_options=_shared_docs["compression_options"] %
+        "path_or_buffer",
     )
     def to_xml(
         self,
-        path_or_buffer: FilePath | WriteBuffer[bytes] | WriteBuffer[str] | None = None,
+        path_or_buffer: FilePath | WriteBuffer[bytes] | WriteBuffer[str]
+        | None = None,
         index: bool = True,
         root_name: str | None = "data",
         row_name: str | None = "row",
@@ -2966,7 +2998,8 @@ class DataFrame(NDFrame, OpsMixin):
         xml_declaration: bool | None = True,
         pretty_print: bool | None = True,
         parser: str | None = "lxml",
-        stylesheet: FilePath | ReadBuffer[str] | ReadBuffer[bytes] | None = None,
+        stylesheet: FilePath | ReadBuffer[str] | ReadBuffer[bytes]
+        | None = None,
         compression: CompressionOptions = "infer",
         storage_options: StorageOptions = None,
     ) -> str | None:
@@ -3122,8 +3155,7 @@ class DataFrame(NDFrame, OpsMixin):
                 TreeBuilder = LxmlXMLFormatter
             else:
                 raise ImportError(
-                    "lxml not found, please install or use the etree parser."
-                )
+                    "lxml not found, please install or use the etree parser.")
 
         elif parser == "etree":
             TreeBuilder = EtreeXMLFormatter
@@ -3165,7 +3197,8 @@ class DataFrame(NDFrame, OpsMixin):
     ) -> None:
         if null_counts is not None:
             if show_counts is not None:
-                raise ValueError("null_counts used with show_counts. Use show_counts.")
+                raise ValueError(
+                    "null_counts used with show_counts. Use show_counts.")
             warnings.warn(
                 "null_counts is deprecated. Use show_counts instead",
                 FutureWarning,
@@ -3273,13 +3306,15 @@ class DataFrame(NDFrame, OpsMixin):
         5244
         """
         result = self._constructor_sliced(
-            [c.memory_usage(index=False, deep=deep) for col, c in self.items()],
+            [
+                c.memory_usage(index=False, deep=deep)
+                for col, c in self.items()
+            ],
             index=self.columns,
         )
         if index:
             index_memory_usage = self._constructor_sliced(
-                self.index.memory_usage(deep=deep), index=["Index"]
-            )
+                self.index.memory_usage(deep=deep), index=["Index"])
             result = index_memory_usage._append(result)
         return result
 
@@ -3391,26 +3426,31 @@ class DataFrame(NDFrame, OpsMixin):
             if copy:
                 new_vals = new_vals.copy()
 
-            result = self._constructor(new_vals, index=self.columns, columns=self.index)
+            result = self._constructor(new_vals,
+                                       index=self.columns,
+                                       columns=self.index)
 
-        elif (
-            self._is_homogeneous_type and dtypes and is_extension_array_dtype(dtypes[0])
-        ):
+        elif (self._is_homogeneous_type and dtypes
+              and is_extension_array_dtype(dtypes[0])):
             # We have EAs with the same dtype. We can preserve that dtype in transpose.
             dtype = dtypes[0]
             arr_type = dtype.construct_array_type()
             values = self.values
 
-            new_values = [arr_type._from_sequence(row, dtype=dtype) for row in values]
-            result = type(self)._from_arrays(
-                new_values, index=self.columns, columns=self.index
-            )
+            new_values = [
+                arr_type._from_sequence(row, dtype=dtype) for row in values
+            ]
+            result = type(self)._from_arrays(new_values,
+                                             index=self.columns,
+                                             columns=self.index)
 
         else:
             new_arr = self.values.T
             if copy:
                 new_arr = new_arr.copy()
-            result = self._constructor(new_arr, index=self.columns, columns=self.index)
+            result = self._constructor(new_arr,
+                                       index=self.columns,
+                                       columns=self.index)
 
         return result.__finalize__(self, method="transpose")
 
@@ -3437,7 +3477,8 @@ class DataFrame(NDFrame, OpsMixin):
             new_values = self._mgr.fast_xs(i)
 
             # if we are a copy, mark as such
-            copy = isinstance(new_values, np.ndarray) and new_values.base is None
+            copy = isinstance(new_values,
+                              np.ndarray) and new_values.base is None
             result = self._constructor_sliced(
                 new_values,
                 index=self.columns,
@@ -3491,8 +3532,7 @@ class DataFrame(NDFrame, OpsMixin):
         if indexer is not None:
             if isinstance(indexer, np.ndarray):
                 indexer = lib.maybe_indices_to_slice(
-                    indexer.astype(np.intp, copy=False), len(self)
-                )
+                    indexer.astype(np.intp, copy=False), len(self))
                 if isinstance(indexer, np.ndarray):
                     # GH#43223 If we can not convert, use take
                     return self.take(indexer, axis=0)
@@ -3554,8 +3594,7 @@ class DataFrame(NDFrame, OpsMixin):
             )
         elif len(key) != len(self.index):
             raise ValueError(
-                f"Item wrong length {len(key)} instead of {len(self.index)}."
-            )
+                f"Item wrong length {len(key)} instead of {len(self.index)}.")
 
         # check_bool_indexer will throw exception if Series key cannot
         # be reindexed to match DataFrame rows
@@ -3574,9 +3613,9 @@ class DataFrame(NDFrame, OpsMixin):
                 result.columns = result_columns
             else:
                 new_values = self.values[:, loc]
-                result = self._constructor(
-                    new_values, index=self.index, columns=result_columns
-                )
+                result = self._constructor(new_values,
+                                           index=self.index,
+                                           columns=result_columns)
                 result = result.__finalize__(self)
 
             # If there is only one column being returned, and its name is
@@ -3592,9 +3631,9 @@ class DataFrame(NDFrame, OpsMixin):
                 if top == "":
                     result = result[""]
                     if isinstance(result, Series):
-                        result = self._constructor_sliced(
-                            result, index=self.index, name=key
-                        )
+                        result = self._constructor_sliced(result,
+                                                          index=self.index,
+                                                          name=key)
 
             result._set_is_copy(self)
             return result
@@ -3656,11 +3695,8 @@ class DataFrame(NDFrame, OpsMixin):
             self._setitem_array(key, value)
         elif isinstance(value, DataFrame):
             self._set_item_frame_value(key, value)
-        elif (
-            is_list_like(value)
-            and not self.columns.is_unique
-            and 1 < len(self.columns.get_indexer_for([key])) == len(value)
-        ):
+        elif (is_list_like(value) and not self.columns.is_unique
+              and 1 < len(self.columns.get_indexer_for([key])) == len(value)):
             # Column to set is duplicated
             self._setitem_array([key], value)
         else:
@@ -3764,13 +3800,13 @@ class DataFrame(NDFrame, OpsMixin):
         # df[df > df2] = 0
         if isinstance(key, np.ndarray):
             if key.shape != self.shape:
-                raise ValueError("Array conditional must be same shape as self")
+                raise ValueError(
+                    "Array conditional must be same shape as self")
             key = self._constructor(key, **self._construct_axes_dict())
 
         if key.size and not is_bool_dtype(key.values):
             raise TypeError(
-                "Must pass DataFrame or 2-d ndarray with boolean values only"
-            )
+                "Must pass DataFrame or 2-d ndarray with boolean values only")
 
         self._check_inplace_setting(value)
         self._check_setitem_copy()
@@ -3790,8 +3826,7 @@ class DataFrame(NDFrame, OpsMixin):
             # align right-hand-side columns if self.columns
             # is multi-index and self[key] is a sub-frame
             if isinstance(self.columns, MultiIndex) and isinstance(
-                loc, (slice, Series, np.ndarray, Index)
-            ):
+                    loc, (slice, Series, np.ndarray, Index)):
                 cols = maybe_droplevels(cols, key)
                 if len(cols) and not cols.equals(value.columns):
                     value = value.reindex(cols, axis=1)
@@ -3800,9 +3835,10 @@ class DataFrame(NDFrame, OpsMixin):
         arraylike = _reindex_for_setitem(value, self.index)
         self._set_item_mgr(key, arraylike)
 
-    def _iset_item_mgr(
-        self, loc: int | slice | np.ndarray, value, inplace: bool = False
-    ) -> None:
+    def _iset_item_mgr(self,
+                       loc: int | slice | np.ndarray,
+                       value,
+                       inplace: bool = False) -> None:
         # when called from _set_item_mgr loc can be anything returned from get_loc
         self._mgr.iset(loc, value, inplace=inplace)
         self._clear_item_cache()
@@ -3844,22 +3880,22 @@ class DataFrame(NDFrame, OpsMixin):
         """
         value = self._sanitize_column(value)
 
-        if (
-            key in self.columns
-            and value.ndim == 1
-            and not is_extension_array_dtype(value)
-        ):
+        if (key in self.columns and value.ndim == 1
+                and not is_extension_array_dtype(value)):
             # broadcast across multiple columns if necessary
-            if not self.columns.is_unique or isinstance(self.columns, MultiIndex):
+            if not self.columns.is_unique or isinstance(
+                    self.columns, MultiIndex):
                 existing_piece = self[key]
                 if isinstance(existing_piece, DataFrame):
                     value = np.tile(value, (len(existing_piece.columns), 1)).T
 
         self._set_item_mgr(key, value)
 
-    def _set_value(
-        self, index: IndexLabel, col, value: Scalar, takeable: bool = False
-    ) -> None:
+    def _set_value(self,
+                   index: IndexLabel,
+                   col,
+                   value: Scalar,
+                   takeable: bool = False) -> None:
         """
         Put single value at passed column and index.
 
@@ -3914,7 +3950,9 @@ class DataFrame(NDFrame, OpsMixin):
             if self.index.name is not None:
                 index_copy.name = self.index.name
 
-            self._mgr = self._mgr.reindex_axis(index_copy, axis=1, fill_value=np.nan)
+            self._mgr = self._mgr.reindex_axis(index_copy,
+                                               axis=1,
+                                               fill_value=np.nan)
 
     def _box_col_values(self, values: SingleDataManager, loc: int) -> Series:
         """
@@ -4336,14 +4374,15 @@ class DataFrame(NDFrame, OpsMixin):
         5  False  2.0
         """
         if not is_list_like(include):
-            include = (include,) if include is not None else ()
+            include = (include, ) if include is not None else ()
         if not is_list_like(exclude):
-            exclude = (exclude,) if exclude is not None else ()
+            exclude = (exclude, ) if exclude is not None else ()
 
         selection = (frozenset(include), frozenset(exclude))
 
         if not any(selection):
-            raise ValueError("at least one of include or exclude must be nonempty")
+            raise ValueError(
+                "at least one of include or exclude must be nonempty")
 
         # convert the myriad valid dtypes object to a single representation
         def check_int_infer_dtype(dtypes):
@@ -4351,7 +4390,8 @@ class DataFrame(NDFrame, OpsMixin):
             for dtype in dtypes:
                 # Numpy maps int to different types (int32, in64) on Windows and Linux
                 # see https://github.com/numpy/numpy/issues/9464
-                if (isinstance(dtype, str) and dtype == "int") or (dtype is int):
+                if (isinstance(dtype, str)
+                        and dtype == "int") or (dtype is int):
                     converted_dtypes.append(np.int32)
                     converted_dtypes.append(np.int64)
                 elif dtype == "float" or dtype is float:
@@ -4369,12 +4409,13 @@ class DataFrame(NDFrame, OpsMixin):
 
         # can't both include AND exclude!
         if not include.isdisjoint(exclude):
-            raise ValueError(f"include and exclude overlap on {(include & exclude)}")
+            raise ValueError(
+                f"include and exclude overlap on {(include & exclude)}")
 
         def dtype_predicate(dtype: DtypeObj, dtypes_set) -> bool:
             return issubclass(dtype.type, tuple(dtypes_set)) or (
-                np.number in dtypes_set and getattr(dtype, "_is_numeric", False)
-            )
+                np.number in dtypes_set
+                and getattr(dtype, "_is_numeric", False))
 
         def predicate(arr: ArrayLike) -> bool:
             dtype = arr.dtype
@@ -4446,10 +4487,8 @@ class DataFrame(NDFrame, OpsMixin):
         if allow_duplicates is lib.no_default:
             allow_duplicates = False
         if allow_duplicates and not self.flags.allows_duplicate_labels:
-            raise ValueError(
-                "Cannot specify 'allow_duplicates=True' when "
-                "'self.flags.allows_duplicate_labels' is False."
-            )
+            raise ValueError("Cannot specify 'allow_duplicates=True' when "
+                             "'self.flags.allows_duplicate_labels' is False.")
         if not allow_duplicates and column in self.columns:
             # Should this be a different kind of error??
             raise ValueError(f"cannot insert {column}, already exists")
@@ -4553,15 +4592,15 @@ class DataFrame(NDFrame, OpsMixin):
     @property
     def _series(self):
         return {
-            item: Series(
-                self._mgr.iget(idx), index=self.index, name=item, fastpath=True
-            )
+            item: Series(self._mgr.iget(idx),
+                         index=self.index,
+                         name=item,
+                         fastpath=True)
             for idx, item in enumerate(self.columns)
         }
 
-    def lookup(
-        self, row_labels: Sequence[IndexLabel], col_labels: Sequence[IndexLabel]
-    ) -> np.ndarray:
+    def lookup(self, row_labels: Sequence[IndexLabel],
+               col_labels: Sequence[IndexLabel]) -> np.ndarray:
         """
         Label-based "fancy indexing" function for DataFrame.
         Given equal-length arrays of row and column labels, return an
@@ -4585,12 +4624,10 @@ class DataFrame(NDFrame, OpsMixin):
         numpy.ndarray
             The found values.
         """
-        msg = (
-            "The 'lookup' method is deprecated and will be "
-            "removed in a future version. "
-            "You can use DataFrame.melt and DataFrame.loc "
-            "as a substitute."
-        )
+        msg = ("The 'lookup' method is deprecated and will be "
+               "removed in a future version. "
+               "You can use DataFrame.melt and DataFrame.loc "
+               "as a substitute.")
         warnings.warn(msg, FutureWarning, stacklevel=find_stack_level())
 
         n = len(row_labels)
@@ -4598,7 +4635,8 @@ class DataFrame(NDFrame, OpsMixin):
             raise ValueError("Row labels must have same size as column labels")
         if not (self.index.is_unique and self.columns.is_unique):
             # GH#33041
-            raise ValueError("DataFrame.lookup requires unique index and columns")
+            raise ValueError(
+                "DataFrame.lookup requires unique index and columns")
 
         thresh = 1000
         if not self._is_mixed_type or n > thresh:
@@ -4624,20 +4662,19 @@ class DataFrame(NDFrame, OpsMixin):
     # ----------------------------------------------------------------------
     # Reindexing and alignment
 
-    def _reindex_axes(self, axes, level, limit, tolerance, method, fill_value, copy):
+    def _reindex_axes(self, axes, level, limit, tolerance, method, fill_value,
+                      copy):
         frame = self
 
         columns = axes["columns"]
         if columns is not None:
-            frame = frame._reindex_columns(
-                columns, method, copy, level, fill_value, limit, tolerance
-            )
+            frame = frame._reindex_columns(columns, method, copy, level,
+                                           fill_value, limit, tolerance)
 
         index = axes["index"]
         if index is not None:
-            frame = frame._reindex_index(
-                index, method, copy, level, fill_value, limit, tolerance
-            )
+            frame = frame._reindex_index(index, method, copy, level,
+                                         fill_value, limit, tolerance)
 
         return frame
 
@@ -4651,9 +4688,11 @@ class DataFrame(NDFrame, OpsMixin):
         limit=None,
         tolerance=None,
     ):
-        new_index, indexer = self.index.reindex(
-            new_index, method=method, level=level, limit=limit, tolerance=tolerance
-        )
+        new_index, indexer = self.index.reindex(new_index,
+                                                method=method,
+                                                level=level,
+                                                limit=limit,
+                                                tolerance=tolerance)
         return self._reindex_with_indexers(
             {0: [new_index, indexer]},
             copy=copy,
@@ -4671,9 +4710,11 @@ class DataFrame(NDFrame, OpsMixin):
         limit=None,
         tolerance=None,
     ):
-        new_columns, indexer = self.columns.reindex(
-            new_columns, method=method, level=level, limit=limit, tolerance=tolerance
-        )
+        new_columns, indexer = self.columns.reindex(new_columns,
+                                                    method=method,
+                                                    level=level,
+                                                    limit=limit,
+                                                    tolerance=tolerance)
         return self._reindex_with_indexers(
             {1: [new_columns, indexer]},
             copy=copy,
@@ -4681,9 +4722,8 @@ class DataFrame(NDFrame, OpsMixin):
             allow_dups=False,
         )
 
-    def _reindex_multi(
-        self, axes: dict[str, Index], copy: bool, fill_value
-    ) -> DataFrame:
+    def _reindex_multi(self, axes: dict[str, Index], copy: bool,
+                       fill_value) -> DataFrame:
         """
         We are guaranteed non-Nones in the axes.
         """
@@ -4698,11 +4738,18 @@ class DataFrame(NDFrame, OpsMixin):
             #  ensures that self.values is cheap. It may be worth making this
             #  condition more specific.
             indexer = row_indexer, col_indexer
-            new_values = take_2d_multi(self.values, indexer, fill_value=fill_value)
-            return self._constructor(new_values, index=new_index, columns=new_columns)
+            new_values = take_2d_multi(self.values,
+                                       indexer,
+                                       fill_value=fill_value)
+            return self._constructor(new_values,
+                                     index=new_index,
+                                     columns=new_columns)
         else:
             return self._reindex_with_indexers(
-                {0: [new_index, row_indexer], 1: [new_columns, col_indexer]},
+                {
+                    0: [new_index, row_indexer],
+                    1: [new_columns, col_indexer]
+                },
                 copy=copy,
                 fill_value=fill_value,
             )
@@ -4735,9 +4782,10 @@ class DataFrame(NDFrame, OpsMixin):
         )
 
     @overload
-    def set_axis(
-        self, labels, axis: Axis = ..., inplace: Literal[False] = ...
-    ) -> DataFrame:
+    def set_axis(self,
+                 labels,
+                 axis: Axis = ...,
+                 inplace: Literal[False] = ...) -> DataFrame:
         ...
 
     @overload
@@ -4749,14 +4797,15 @@ class DataFrame(NDFrame, OpsMixin):
         ...
 
     @overload
-    def set_axis(
-        self, labels, axis: Axis = ..., inplace: bool = ...
-    ) -> DataFrame | None:
+    def set_axis(self,
+                 labels,
+                 axis: Axis = ...,
+                 inplace: bool = ...) -> DataFrame | None:
         ...
 
-    @deprecate_nonkeyword_arguments(version=None, allowed_args=["self", "labels"])
-    @Appender(
-        """
+    @deprecate_nonkeyword_arguments(version=None,
+                                    allowed_args=["self", "labels"])
+    @Appender("""
         Examples
         --------
         >>> df = pd.DataFrame({"A": [1, 2, 3], "B": [4, 5, 6]})
@@ -4785,8 +4834,7 @@ class DataFrame(NDFrame, OpsMixin):
         0  1   4
         1  2   5
         2  3   6
-        """
-    )
+        """)
     @Substitution(
         **_shared_doc_kwargs,
         extended_summary_sub=" column or",
@@ -4811,14 +4859,16 @@ class DataFrame(NDFrame, OpsMixin):
         ],
     )
     def reindex(self, *args, **kwargs) -> DataFrame:
-        axes = validate_axis_style_args(self, args, kwargs, "labels", "reindex")
+        axes = validate_axis_style_args(self, args, kwargs, "labels",
+                                        "reindex")
         kwargs.update(axes)
         # Pop these, since the values are in `kwargs` under different names
         kwargs.pop("axis", None)
         kwargs.pop("labels", None)
         return super().reindex(**kwargs)
 
-    @deprecate_nonkeyword_arguments(version=None, allowed_args=["self", "labels"])
+    @deprecate_nonkeyword_arguments(version=None,
+                                    allowed_args=["self", "labels"])
     def drop(
         self,
         labels=None,
@@ -5221,7 +5271,8 @@ class DataFrame(NDFrame, OpsMixin):
     ) -> DataFrame | None:
         ...
 
-    @deprecate_nonkeyword_arguments(version=None, allowed_args=["self", "value"])
+    @deprecate_nonkeyword_arguments(version=None,
+                                    allowed_args=["self", "value"])
     @doc(NDFrame.fillna, **_shared_doc_kwargs)
     def fillna(
         self,
@@ -5303,9 +5354,8 @@ class DataFrame(NDFrame, OpsMixin):
             method=method,
         )
 
-    def _replace_columnwise(
-        self, mapping: dict[Hashable, tuple[Any, Any]], inplace: bool, regex
-    ):
+    def _replace_columnwise(self, mapping: dict[Hashable, tuple[Any, Any]],
+                            inplace: bool, regex):
         """
         Dispatch to Series.replace column-wise.
 
@@ -5366,45 +5416,39 @@ class DataFrame(NDFrame, OpsMixin):
                 for col in range(min(ncols, abs(periods))):
                     # Define filler inside loop so we get a copy
                     filler = self.iloc[:, -1].shift(len(self))
-                    result.insert(
-                        len(result.columns), label, filler, allow_duplicates=True
-                    )
+                    result.insert(len(result.columns),
+                                  label,
+                                  filler,
+                                  allow_duplicates=True)
 
             result.columns = self.columns.copy()
             return result
-        elif (
-            axis == 1
-            and periods != 0
-            and fill_value is not lib.no_default
-            and ncols > 0
-        ):
+        elif (axis == 1 and periods != 0 and fill_value is not lib.no_default
+              and ncols > 0):
             arrays = self._mgr.arrays
             if len(arrays) > 1 or (
-                # If we only have one block and we know that we can't
-                #  keep the same dtype (i.e. the _can_hold_element check)
-                #  then we can go through the reindex_indexer path
-                #  (and avoid casting logic in the Block method).
-                #  The exception to this (until 2.0) is datetimelike
-                #  dtypes with integers, which cast.
-                not can_hold_element(arrays[0], fill_value)
-                # TODO(2.0): remove special case for integer-with-datetimelike
-                #  once deprecation is enforced
-                and not (
-                    lib.is_integer(fill_value) and needs_i8_conversion(arrays[0].dtype)
-                )
-            ):
+                    # If we only have one block and we know that we can't
+                    #  keep the same dtype (i.e. the _can_hold_element check)
+                    #  then we can go through the reindex_indexer path
+                    #  (and avoid casting logic in the Block method).
+                    #  The exception to this (until 2.0) is datetimelike
+                    #  dtypes with integers, which cast.
+                    not can_hold_element(arrays[0], fill_value)
+                    # TODO(2.0): remove special case for integer-with-datetimelike
+                    #  once deprecation is enforced
+                    and not (lib.is_integer(fill_value)
+                             and needs_i8_conversion(arrays[0].dtype))):
                 # GH#35488 we need to watch out for multi-block cases
                 # We only get here with fill_value not-lib.no_default
                 nper = abs(periods)
                 nper = min(nper, ncols)
                 if periods > 0:
-                    indexer = np.array(
-                        [-1] * nper + list(range(ncols - periods)), dtype=np.intp
-                    )
+                    indexer = np.array([-1] * nper +
+                                       list(range(ncols - periods)),
+                                       dtype=np.intp)
                 else:
-                    indexer = np.array(
-                        list(range(nper, ncols)) + [-1] * nper, dtype=np.intp
-                    )
+                    indexer = np.array(list(range(nper, ncols)) + [-1] * nper,
+                                       dtype=np.intp)
                 mgr = self._mgr.reindex_indexer(
                     self.columns,
                     indexer,
@@ -5415,11 +5459,13 @@ class DataFrame(NDFrame, OpsMixin):
                 res_df = self._constructor(mgr)
                 return res_df.__finalize__(self, method="shift")
 
-        return super().shift(
-            periods=periods, freq=freq, axis=axis, fill_value=fill_value
-        )
+        return super().shift(periods=periods,
+                             freq=freq,
+                             axis=axis,
+                             fill_value=fill_value)
 
-    @deprecate_nonkeyword_arguments(version=None, allowed_args=["self", "keys"])
+    @deprecate_nonkeyword_arguments(version=None,
+                                    allowed_args=["self", "keys"])
     def set_index(
         self,
         keys,
@@ -5522,15 +5568,14 @@ class DataFrame(NDFrame, OpsMixin):
         if not isinstance(keys, list):
             keys = [keys]
 
-        err_msg = (
-            'The parameter "keys" may be a column key, one-dimensional '
-            "array, or a list containing only valid column keys and "
-            "one-dimensional arrays."
-        )
+        err_msg = ('The parameter "keys" may be a column key, one-dimensional '
+                   "array, or a list containing only valid column keys and "
+                   "one-dimensional arrays.")
 
         missing: list[Hashable] = []
         for col in keys:
-            if isinstance(col, (Index, Series, np.ndarray, list, abc.Iterator)):
+            if isinstance(col,
+                          (Index, Series, np.ndarray, list, abc.Iterator)):
                 # arrays are fine as long as they are one-dimensional
                 # iterators get converted to list below
                 if getattr(col, "ndim", 1) != 1:
@@ -5600,8 +5645,7 @@ class DataFrame(NDFrame, OpsMixin):
                 # ensure_index_from_sequences would not raise for append=False.
                 raise ValueError(
                     f"Length mismatch: Expected {len(self)} rows, "
-                    f"received array of length {len(arrays[-1])}"
-                )
+                    f"received array of length {len(arrays[-1])}")
 
         index = ensure_index_from_sequences(arrays, names)
 
@@ -5692,7 +5736,8 @@ class DataFrame(NDFrame, OpsMixin):
     ) -> DataFrame | None:
         ...
 
-    @deprecate_nonkeyword_arguments(version=None, allowed_args=["self", "level"])
+    @deprecate_nonkeyword_arguments(version=None,
+                                    allowed_args=["self", "level"])
     def reset_index(
         self,
         level: Hashable | Sequence[Hashable] | None = None,
@@ -5854,7 +5899,8 @@ class DataFrame(NDFrame, OpsMixin):
         else:
             new_obj = self.copy()
         if allow_duplicates is not lib.no_default:
-            allow_duplicates = validate_bool_kwarg(allow_duplicates, "allow_duplicates")
+            allow_duplicates = validate_bool_kwarg(allow_duplicates,
+                                                   "allow_duplicates")
 
         new_index = default_index(len(new_obj))
         if level is not None:
@@ -5871,8 +5917,9 @@ class DataFrame(NDFrame, OpsMixin):
                 to_insert = zip(self.index.levels, self.index.codes)
             else:
                 default = "index" if "index" not in self else "level_0"
-                names = [default] if self.index.name is None else [self.index.name]
-                to_insert = ((self.index, None),)
+                names = [default
+                         ] if self.index.name is None else [self.index.name]
+                to_insert = ((self.index, None), )
 
             multi_col = isinstance(self.columns, MultiIndex)
             for i, (lev, lab) in reversed(list(enumerate(to_insert))):
@@ -5880,13 +5927,13 @@ class DataFrame(NDFrame, OpsMixin):
                     continue
                 name = names[i]
                 if multi_col:
-                    col_name = list(name) if isinstance(name, tuple) else [name]
+                    col_name = list(name) if isinstance(name,
+                                                        tuple) else [name]
                     if col_fill is None:
                         if len(col_name) not in (1, self.columns.nlevels):
                             raise ValueError(
                                 "col_fill=None is incompatible "
-                                f"with incomplete column name {name}"
-                            )
+                                f"with incomplete column name {name}")
                         col_fill = col_name[0]
 
                     lev_num = self.columns._get_level_number(col_level)
@@ -5902,9 +5949,10 @@ class DataFrame(NDFrame, OpsMixin):
 
                 if lab is not None:
                     # if we have the codes, extract the values with a mask
-                    level_values = algorithms.take(
-                        level_values, lab, allow_fill=True, fill_value=lev._na_value
-                    )
+                    level_values = algorithms.take(level_values,
+                                                   lab,
+                                                   allow_fill=True,
+                                                   fill_value=lev._na_value)
 
                 new_obj.insert(
                     0,
@@ -6060,7 +6108,8 @@ class DataFrame(NDFrame, OpsMixin):
         inplace = validate_bool_kwarg(inplace, "inplace")
         if isinstance(axis, (tuple, list)):
             # GH20987
-            raise TypeError("supplying multiple axes to axis is no longer supported.")
+            raise TypeError(
+                "supplying multiple axes to axis is no longer supported.")
 
         axis = self._get_axis_number(axis)
         agg_axis = 1 - axis
@@ -6102,7 +6151,8 @@ class DataFrame(NDFrame, OpsMixin):
         else:
             return result
 
-    @deprecate_nonkeyword_arguments(version=None, allowed_args=["self", "subset"])
+    @deprecate_nonkeyword_arguments(version=None,
+                                    allowed_args=["self", "subset"])
     def drop_duplicates(
         self,
         subset: Hashable | Sequence[Hashable] | None = None,
@@ -6306,13 +6356,9 @@ class DataFrame(NDFrame, OpsMixin):
             # Incompatible types in assignment (expression has type "Index", variable
             # has type "Sequence[Any]")
             subset = self.columns  # type: ignore[assignment]
-        elif (
-            not np.iterable(subset)
-            or isinstance(subset, str)
-            or isinstance(subset, tuple)
-            and subset in self.columns
-        ):
-            subset = (subset,)
+        elif (not np.iterable(subset) or isinstance(subset, str)
+              or isinstance(subset, tuple) and subset in self.columns):
+            subset = (subset, )
 
         #  needed for mypy since can't narrow types using np.iterable
         subset = cast(Sequence, subset)
@@ -6340,7 +6386,8 @@ class DataFrame(NDFrame, OpsMixin):
                 sort=False,
                 xnull=False,
             )
-            result = self._constructor_sliced(duplicated(ids, keep), index=self.index)
+            result = self._constructor_sliced(duplicated(ids, keep),
+                                              index=self.index)
         return result.__finalize__(self, method="duplicated")
 
     # ----------------------------------------------------------------------
@@ -6383,9 +6430,10 @@ class DataFrame(NDFrame, OpsMixin):
                     for (k, name) in zip(keys, by)
                 ]
 
-            indexer = lexsort_indexer(
-                keys, orders=ascending, na_position=na_position, key=key
-            )
+            indexer = lexsort_indexer(keys,
+                                      orders=ascending,
+                                      na_position=na_position,
+                                      key=key)
         elif len(by):
             # len(by) == 1
 
@@ -6401,20 +6449,21 @@ class DataFrame(NDFrame, OpsMixin):
             if isinstance(ascending, (tuple, list)):
                 ascending = ascending[0]
 
-            indexer = nargsort(
-                k, kind=kind, ascending=ascending, na_position=na_position, key=key
-            )
+            indexer = nargsort(k,
+                               kind=kind,
+                               ascending=ascending,
+                               na_position=na_position,
+                               key=key)
         else:
             return self.copy()
 
-        new_data = self._mgr.take(
-            indexer, axis=self._get_block_manager_axis(axis), verify=False
-        )
+        new_data = self._mgr.take(indexer,
+                                  axis=self._get_block_manager_axis(axis),
+                                  verify=False)
 
         if ignore_index:
-            new_data.set_axis(
-                self._get_block_manager_axis(axis), default_index(len(indexer))
-            )
+            new_data.set_axis(self._get_block_manager_axis(axis),
+                              default_index(len(indexer)))
 
         result = self._constructor(new_data)
         if inplace:
@@ -6656,13 +6705,15 @@ class DataFrame(NDFrame, OpsMixin):
 
         # Force MultiIndex for single column
         if len(subset) == 1:
-            counts.index = MultiIndex.from_arrays(
-                [counts.index], names=[counts.index.name]
-            )
+            counts.index = MultiIndex.from_arrays([counts.index],
+                                                  names=[counts.index.name])
 
         return counts
 
-    def nlargest(self, n: int, columns: IndexLabel, keep: str = "first") -> DataFrame:
+    def nlargest(self,
+                 n: int,
+                 columns: IndexLabel,
+                 keep: str = "first") -> DataFrame:
         """
         Return the first `n` rows ordered by `columns` in descending order.
 
@@ -6767,9 +6818,13 @@ class DataFrame(NDFrame, OpsMixin):
         Italy     59000000  1937894      IT
         Brunei      434000    12128      BN
         """
-        return algorithms.SelectNFrame(self, n=n, keep=keep, columns=columns).nlargest()
+        return algorithms.SelectNFrame(self, n=n, keep=keep,
+                                       columns=columns).nlargest()
 
-    def nsmallest(self, n: int, columns: IndexLabel, keep: str = "first") -> DataFrame:
+    def nsmallest(self,
+                  n: int,
+                  columns: IndexLabel,
+                  keep: str = "first") -> DataFrame:
         """
         Return the first `n` rows ordered by `columns` in ascending order.
 
@@ -6865,20 +6920,16 @@ class DataFrame(NDFrame, OpsMixin):
         Anguilla       11300  311      AI
         Nauru         337000  182      NR
         """
-        return algorithms.SelectNFrame(
-            self, n=n, keep=keep, columns=columns
-        ).nsmallest()
+        return algorithms.SelectNFrame(self, n=n, keep=keep,
+                                       columns=columns).nsmallest()
 
     @doc(
         Series.swaplevel,
         klass=_shared_doc_kwargs["klass"],
-        extra_params=dedent(
-            """axis : {0 or 'index', 1 or 'columns'}, default 0
+        extra_params=dedent("""axis : {0 or 'index', 1 or 'columns'}, default 0
             The axis to swap levels on. 0 or 'index' for row-wise, 1 or
-            'columns' for column-wise."""
-        ),
-        examples=dedent(
-            """\
+            'columns' for column-wise."""),
+        examples=dedent("""\
         Examples
         --------
         >>> df = pd.DataFrame(
@@ -6928,15 +6979,18 @@ class DataFrame(NDFrame, OpsMixin):
         History     Final exam  January         A
         Geography   Final exam  February        B
         History     Coursework  March           A
-        Geography   Coursework  April           C"""
-        ),
+        Geography   Coursework  April           C"""),
     )
-    def swaplevel(self, i: Axis = -2, j: Axis = -1, axis: Axis = 0) -> DataFrame:
+    def swaplevel(self,
+                  i: Axis = -2,
+                  j: Axis = -1,
+                  axis: Axis = 0) -> DataFrame:
         result = self.copy()
 
         axis = self._get_axis_number(axis)
 
-        if not isinstance(result._get_axis(axis), MultiIndex):  # pragma: no cover
+        if not isinstance(result._get_axis(axis),
+                          MultiIndex):  # pragma: no cover
             raise TypeError("Can only swap levels on a hierarchical axis.")
 
         if axis == 0:
@@ -6947,7 +7001,9 @@ class DataFrame(NDFrame, OpsMixin):
             result.columns = result.columns.swaplevel(i, j)
         return result
 
-    def reorder_levels(self, order: Sequence[Axis], axis: Axis = 0) -> DataFrame:
+    def reorder_levels(self,
+                       order: Sequence[Axis],
+                       axis: Axis = 0) -> DataFrame:
         """
         Rearrange index levels using input order. May not drop or duplicate levels.
 
@@ -6989,7 +7045,8 @@ class DataFrame(NDFrame, OpsMixin):
                   Reptiles                 Snakes
         """
         axis = self._get_axis_number(axis)
-        if not isinstance(self._get_axis(axis), MultiIndex):  # pragma: no cover
+        if not isinstance(self._get_axis(axis),
+                          MultiIndex):  # pragma: no cover
             raise TypeError("Can only reorder levels on a hierarchical axis.")
 
         result = self.copy()
@@ -7008,7 +7065,11 @@ class DataFrame(NDFrame, OpsMixin):
     def _cmp_method(self, other, op):
         axis = 1  # only relevant for Series other case
 
-        self, other = ops.align_method_FRAME(self, other, axis, flex=False, level=None)
+        self, other = ops.align_method_FRAME(self,
+                                             other,
+                                             axis,
+                                             flex=False,
+                                             level=None)
 
         # See GH#4537 for discussion of scalar op behavior
         new_data = self._dispatch_frame_op(other, op, axis=axis)
@@ -7019,16 +7080,23 @@ class DataFrame(NDFrame, OpsMixin):
             return ops.frame_arith_method_with_reindex(self, other, op)
 
         axis = 1  # only relevant for Series other case
-        other = ops.maybe_prepare_scalar_for_op(other, (self.shape[axis],))
+        other = ops.maybe_prepare_scalar_for_op(other, (self.shape[axis], ))
 
-        self, other = ops.align_method_FRAME(self, other, axis, flex=True, level=None)
+        self, other = ops.align_method_FRAME(self,
+                                             other,
+                                             axis,
+                                             flex=True,
+                                             level=None)
 
         new_data = self._dispatch_frame_op(other, op, axis=axis)
         return self._construct_result(new_data)
 
     _logical_method = _arith_method
 
-    def _dispatch_frame_op(self, right, func: Callable, axis: int | None = None):
+    def _dispatch_frame_op(self,
+                           right,
+                           func: Callable,
+                           axis: int | None = None):
         """
         Evaluate the frame operation func(left, right) by evaluating
         column-by-column, dispatching to the Series implementation.
@@ -7093,15 +7161,19 @@ class DataFrame(NDFrame, OpsMixin):
             right = right._values
 
             with np.errstate(all="ignore"):
-                arrays = [array_op(left, right) for left in self._iter_column_arrays()]
+                arrays = [
+                    array_op(left, right)
+                    for left in self._iter_column_arrays()
+                ]
 
         else:
             # Remaining cases have less-obvious dispatch rules
             raise NotImplementedError(right)
 
-        return type(self)._from_arrays(
-            arrays, self.columns, self.index, verify_integrity=False
-        )
+        return type(self)._from_arrays(arrays,
+                                       self.columns,
+                                       self.index,
+                                       verify_integrity=False)
 
     def _combine_frame(self, other: DataFrame, func, fill_value=None):
         # at this point we have `self._indexed_same(other)`
@@ -7277,9 +7349,11 @@ Keep all original rows and columns and also all original values
             keep_equal=keep_equal,
         )
 
-    def combine(
-        self, other: DataFrame, func, fill_value=None, overwrite: bool = True
-    ) -> DataFrame:
+    def combine(self,
+                other: DataFrame,
+                func,
+                fill_value=None,
+                overwrite: bool = True) -> DataFrame:
         """
         Perform column-wise combine with another DataFrame.
 
@@ -7643,7 +7717,8 @@ Keep all original rows and columns and also all original values
         if join != "left":  # pragma: no cover
             raise NotImplementedError("Only left join is supported")
         if errors not in ["ignore", "raise"]:
-            raise ValueError("The parameter errors must be either 'ignore' or 'raise'")
+            raise ValueError(
+                "The parameter errors must be either 'ignore' or 'raise'")
 
         if not isinstance(other, DataFrame):
             other = DataFrame(other)
@@ -7676,8 +7751,7 @@ Keep all original rows and columns and also all original values
 
     # ----------------------------------------------------------------------
     # Data reshaping
-    @Appender(
-        """
+    @Appender("""
 Examples
 --------
 >>> df = pd.DataFrame({'Animal': ['Falcon', 'Falcon',
@@ -7757,8 +7831,7 @@ a
 a   13.0   13.0
 b   12.3  123.0
 NaN 12.3   33.0
-"""
-    )
+""")
     @Appender(_shared_docs["groupby"] % _shared_doc_kwargs)
     def groupby(
         self,
@@ -7776,10 +7849,8 @@ NaN 12.3   33.0
 
         if squeeze is not no_default:
             warnings.warn(
-                (
-                    "The `squeeze` parameter is deprecated and "
-                    "will be removed in a future version."
-                ),
+                ("The `squeeze` parameter is deprecated and "
+                 "will be removed in a future version."),
                 FutureWarning,
                 stacklevel=find_stack_level(),
             )
@@ -7806,9 +7877,7 @@ NaN 12.3   33.0
             dropna=dropna,
         )
 
-    _shared_docs[
-        "pivot"
-    ] = """
+    _shared_docs["pivot"] = """
         Return reshaped DataFrame organized by given index / column values.
 
         Reshape data (produce a "pivot" table) based on column values. Uses
@@ -7959,9 +8028,7 @@ NaN 12.3   33.0
 
         return pivot(self, index=index, columns=columns, values=values)
 
-    _shared_docs[
-        "pivot_table"
-    ] = """
+    _shared_docs["pivot_table"] = """
         Create a spreadsheet-style pivot table as a DataFrame.
 
         The levels in the pivot table will be stored in MultiIndex objects
@@ -8408,8 +8475,7 @@ NaN 12.3   33.0
         if is_scalar(column) or isinstance(column, tuple):
             columns = [column]
         elif isinstance(column, list) and all(
-            map(lambda c: is_scalar(c) or isinstance(c, tuple), column)
-        ):
+                map(lambda c: is_scalar(c) or isinstance(c, tuple), column)):
             if not column:
                 raise ValueError("column must be nonempty")
             if len(column) > len(set(column)):
@@ -8426,7 +8492,8 @@ NaN 12.3   33.0
             counts0 = self[columns[0]].apply(mylen)
             for c in columns[1:]:
                 if not all(counts0 == self[c].apply(mylen)):
-                    raise ValueError("columns must have matching element counts")
+                    raise ValueError(
+                        "columns must have matching element counts")
             result = DataFrame({c: df[c].explode() for c in columns})
         result = df.drop(columns, axis=1).join(result)
         if ignore_index:
@@ -8534,8 +8601,7 @@ NaN 12.3   33.0
         extra_params="axis : {0 or 'index', 1 or 'columns'}, default 0\n    "
         "Take difference over rows (0) or columns (1).\n",
         other_klass="Series",
-        examples=dedent(
-            """
+        examples=dedent("""
         Difference with previous row
 
         >>> df = pd.DataFrame({'a': [1, 2, 3, 4, 5, 6],
@@ -8598,16 +8664,14 @@ NaN 12.3   33.0
         >>> df.diff()
                a
         0    NaN
-        1  255.0"""
-        ),
+        1  255.0"""),
     )
     def diff(self, periods: int = 1, axis: Axis = 0) -> DataFrame:
         if not lib.is_integer(periods):
-            if not (
-                is_float(periods)
-                # error: "int" has no attribute "is_integer"
-                and periods.is_integer()  # type: ignore[attr-defined]
-            ):
+            if not (is_float(periods)
+                    # error: "int" has no attribute "is_integer"
+                    and periods.is_integer()  # type: ignore[attr-defined]
+                    ):
                 raise ValueError("periods must be an integer")
             periods = int(periods)
 
@@ -8646,8 +8710,7 @@ NaN 12.3   33.0
         # TODO: _shallow_copy(subset)?
         return subset[key]
 
-    _agg_summary_and_see_also_doc = dedent(
-        """
+    _agg_summary_and_see_also_doc = dedent("""
     The aggregation operations are always performed over an axis, either the
     index (default) or the column axis. This behavior is different from
     `numpy` aggregation functions (`mean`, `median`, `prod`, `sum`, `std`,
@@ -8667,11 +8730,9 @@ NaN 12.3   33.0
     core.window.Expanding : Perform operations over expanding window.
     core.window.ExponentialMovingWindow : Perform operation over exponential weighted
         window.
-    """
-    )
+    """)
 
-    _agg_examples_doc = dedent(
-        """
+    _agg_examples_doc = dedent("""
     Examples
     --------
     >>> df = pd.DataFrame([[1, 2, 3],
@@ -8712,8 +8773,7 @@ NaN 12.3   33.0
     2    8.0
     3    NaN
     dtype: float64
-    """
-    )
+    """)
 
     @doc(
         _shared_docs["aggregate"],
@@ -8753,9 +8813,11 @@ NaN 12.3   33.0
         klass=_shared_doc_kwargs["klass"],
         axis=_shared_doc_kwargs["axis"],
     )
-    def transform(
-        self, func: AggFuncType, axis: Axis = 0, *args, **kwargs
-    ) -> DataFrame:
+    def transform(self,
+                  func: AggFuncType,
+                  axis: Axis = 0,
+                  *args,
+                  **kwargs) -> DataFrame:
         from pandas.core.apply import frame_apply
 
         op = frame_apply(self, func=func, axis=axis, args=args, kwargs=kwargs)
@@ -8764,13 +8826,13 @@ NaN 12.3   33.0
         return result
 
     def apply(
-        self,
-        func: AggFuncType,
-        axis: Axis = 0,
-        raw: bool = False,
-        result_type=None,
-        args=(),
-        **kwargs,
+            self,
+            func: AggFuncType,
+            axis: Axis = 0,
+            raw: bool = False,
+            result_type=None,
+            args=(),
+            **kwargs,
     ):
         """
         Apply a function along an axis of the DataFrame.
@@ -8922,9 +8984,10 @@ NaN 12.3   33.0
         )
         return op.apply().__finalize__(self, method="apply")
 
-    def applymap(
-        self, func: PythonFuncType, na_action: str | None = None, **kwargs
-    ) -> DataFrame:
+    def applymap(self,
+                 func: PythonFuncType,
+                 na_action: str | None = None,
+                 **kwargs) -> DataFrame:
         """
         Apply a function to a Dataframe elementwise.
 
@@ -8994,8 +9057,7 @@ NaN 12.3   33.0
         """
         if na_action not in {"ignore", None}:
             raise ValueError(
-                f"na_action must be 'ignore' or None. Got {repr(na_action)}"
-            )
+                f"na_action must be 'ignore' or None. Got {repr(na_action)}")
         ignore_na = na_action == "ignore"
         func = functools.partial(func, **kwargs)
 
@@ -9003,7 +9065,9 @@ NaN 12.3   33.0
         def infer(x):
             if x.empty:
                 return lib.map_infer(x, func, ignore_na=ignore_na)
-            return lib.map_infer(x.astype(object)._values, func, ignore_na=ignore_na)
+            return lib.map_infer(x.astype(object)._values,
+                                 func,
+                                 ignore_na=ignore_na)
 
         return self.apply(infer).__finalize__(self, "applymap")
 
@@ -9133,13 +9197,13 @@ NaN 12.3   33.0
         if isinstance(other, (Series, dict)):
             if isinstance(other, dict):
                 if not ignore_index:
-                    raise TypeError("Can only append a dict if ignore_index=True")
+                    raise TypeError(
+                        "Can only append a dict if ignore_index=True")
                 other = Series(other)
             if other.name is None and not ignore_index:
                 raise TypeError(
                     "Can only append a Series if ignore_index=True "
-                    "or if the Series has a name"
-                )
+                    "or if the Series has a name")
 
             index = Index([other.name], name=self.index.name)
             idx_diff = other.index.difference(self.columns)
@@ -9169,11 +9233,8 @@ NaN 12.3   33.0
             verify_integrity=verify_integrity,
             sort=sort,
         )
-        if (
-            combined_columns is not None
-            and not sort
-            and not combined_columns.equals(result.columns)
-        ):
+        if (combined_columns is not None and not sort
+                and not combined_columns.equals(result.columns)):
             # TODO: reindexing here is a kludge bc union_indexes does not
             #  pass sort to index.union, xref #43375
             # combined_columns.equals check is necessary for preserving dtype
@@ -9335,9 +9396,12 @@ NaN 12.3   33.0
         4  K0  A4   B0
         5  K1  A5   B1
         """
-        return self._join_compat(
-            other, on=on, how=how, lsuffix=lsuffix, rsuffix=rsuffix, sort=sort
-        )
+        return self._join_compat(other,
+                                 on=on,
+                                 how=how,
+                                 lsuffix=lsuffix,
+                                 rsuffix=rsuffix,
+                                 sort=sort)
 
     def _join_compat(
         self,
@@ -9389,21 +9453,27 @@ NaN 12.3   33.0
             # join indexes only using concat
             if can_concat:
                 if how == "left":
-                    res = concat(
-                        frames, axis=1, join="outer", verify_integrity=True, sort=sort
-                    )
+                    res = concat(frames,
+                                 axis=1,
+                                 join="outer",
+                                 verify_integrity=True,
+                                 sort=sort)
                     return res.reindex(self.index, copy=False)
                 else:
-                    return concat(
-                        frames, axis=1, join=how, verify_integrity=True, sort=sort
-                    )
+                    return concat(frames,
+                                  axis=1,
+                                  join=how,
+                                  verify_integrity=True,
+                                  sort=sort)
 
             joined = frames[0]
 
             for frame in frames[1:]:
-                joined = merge(
-                    joined, frame, how=how, left_index=True, right_index=True
-                )
+                joined = merge(joined,
+                               frame,
+                               how=how,
+                               left_index=True,
+                               right_index=True)
 
             return joined
 
@@ -9442,9 +9512,10 @@ NaN 12.3   33.0
             validate=validate,
         )
 
-    def round(
-        self, decimals: int | dict[IndexLabel, int] | Series = 0, *args, **kwargs
-    ) -> DataFrame:
+    def round(self,
+              decimals: int | dict[IndexLabel, int] | Series = 0,
+              *args,
+              **kwargs) -> DataFrame:
         """
         Round a DataFrame to a variable number of decimal places.
 
@@ -9541,20 +9612,21 @@ NaN 12.3   33.0
             if isinstance(decimals, Series) and not decimals.index.is_unique:
                 raise ValueError("Index of decimals must be unique")
             if is_dict_like(decimals) and not all(
-                is_integer(value) for _, value in decimals.items()
-            ):
+                    is_integer(value) for _, value in decimals.items()):
                 raise TypeError("Values in decimals must be integers")
             new_cols = list(_dict_round(self, decimals))
         elif is_integer(decimals):
             # Dispatch to Series.round
             new_cols = [_series_round(v, decimals) for _, v in self.items()]
         else:
-            raise TypeError("decimals must be an integer, a dict-like or a Series")
+            raise TypeError(
+                "decimals must be an integer, a dict-like or a Series")
 
         if len(new_cols) > 0:
-            return self._constructor(
-                concat(new_cols, axis=1), index=self.index, columns=self.columns
-            ).__finalize__(self, method="round")
+            return self._constructor(concat(new_cols, axis=1),
+                                     index=self.index,
+                                     columns=self.columns).__finalize__(
+                                         self, method="round")
         else:
             return self
 
@@ -9658,15 +9730,15 @@ NaN 12.3   33.0
                     correl[i, j] = c
                     correl[j, i] = c
         else:
-            raise ValueError(
-                "method must be either 'pearson', "
-                "'spearman', 'kendall', or a callable, "
-                f"'{method}' was supplied"
-            )
+            raise ValueError("method must be either 'pearson', "
+                             "'spearman', 'kendall', or a callable, "
+                             f"'{method}' was supplied")
 
         return self._constructor(correl, index=idx, columns=cols)
 
-    def cov(self, min_periods: int | None = None, ddof: int | None = 1) -> DataFrame:
+    def cov(self,
+            min_periods: int | None = None,
+            ddof: int | None = 1) -> DataFrame:
         """
         Compute pairwise covariance of columns, excluding NA/null values.
 
@@ -9782,7 +9854,11 @@ NaN 12.3   33.0
 
         return self._constructor(base_cov, index=idx, columns=cols)
 
-    def corrwith(self, other, axis: Axis = 0, drop=False, method="pearson") -> Series:
+    def corrwith(self,
+                 other,
+                 axis: Axis = 0,
+                 drop=False,
+                 method="pearson") -> Series:
         """
         Compute pairwise correlation.
 
@@ -9860,8 +9936,7 @@ NaN 12.3   33.0
                     for i, r in enumerate(ndf):
                         nonnull_mask = ~np.isnan(r) & ~np.isnan(k)
                         corrs[numeric_cols[i]] = np.corrcoef(
-                            r[nonnull_mask], k[nonnull_mask]
-                        )[0, 1]
+                            r[nonnull_mask], k[nonnull_mask])[0, 1]
                 else:
                     for i, r in enumerate(ndf):
                         nonnull_mask = ~np.isnan(r) & ~np.isnan(k)
@@ -9871,7 +9946,8 @@ NaN 12.3   33.0
                         )[0, 1]
                 return Series(corrs)
             else:
-                return this.apply(lambda x: other.corr(x, method=method), axis=axis)
+                return this.apply(lambda x: other.corr(x, method=method),
+                                  axis=axis)
 
         other = other._get_numeric_data()
         left, right = this.align(other, join="inner", copy=False)
@@ -9899,16 +9975,14 @@ NaN 12.3   33.0
             def c(x):
                 return nanops.nancorr(x[0], x[1], method=method)
 
-            correl = self._constructor_sliced(
-                map(c, zip(left.values.T, right.values.T)), index=left.columns
-            )
+            correl = self._constructor_sliced(map(
+                c, zip(left.values.T, right.values.T)),
+                index=left.columns)
 
         else:
-            raise ValueError(
-                f"Invalid method {method} was passed, "
-                "valid methods are: 'pearson', 'kendall', "
-                "'spearman', or callable"
-            )
+            raise ValueError(f"Invalid method {method} was passed, "
+                             "valid methods are: 'pearson', 'kendall', "
+                             "'spearman', or callable")
 
         if not drop:
             # Find non-matching labels along the given axis
@@ -9919,17 +9993,17 @@ NaN 12.3   33.0
 
             if len(idx_diff) > 0:
                 correl = correl._append(
-                    Series([np.nan] * len(idx_diff), index=idx_diff)
-                )
+                    Series([np.nan] * len(idx_diff), index=idx_diff))
 
         return correl
 
     # ----------------------------------------------------------------------
     # ndarray-like stats methods
 
-    def count(
-        self, axis: Axis = 0, level: Level | None = None, numeric_only: bool = False
-    ):
+    def count(self,
+              axis: Axis = 0,
+              level: Level | None = None,
+              numeric_only: bool = False):
         """
         Count non-NA cells for each column or row.
 
@@ -10006,7 +10080,9 @@ NaN 12.3   33.0
                 FutureWarning,
                 stacklevel=find_stack_level(),
             )
-            res = self._count_level(level, axis=axis, numeric_only=numeric_only)
+            res = self._count_level(level,
+                                    axis=axis,
+                                    numeric_only=numeric_only)
             return res.__finalize__(self, method="count")
 
         if numeric_only:
@@ -10016,7 +10092,8 @@ NaN 12.3   33.0
 
         # GH #423
         if len(frame._get_axis(axis)) == 0:
-            result = self._constructor_sliced(0, index=frame._get_agg_axis(axis))
+            result = self._constructor_sliced(0,
+                                              index=frame._get_agg_axis(axis))
         else:
             if frame._is_mixed_type or frame._mgr.any_extension_types:
                 # the or any_extension_types is really only hit for single-
@@ -10027,12 +10104,14 @@ NaN 12.3   33.0
                 series_counts = notna(frame).sum(axis=axis)
                 counts = series_counts.values
                 result = self._constructor_sliced(
-                    counts, index=frame._get_agg_axis(axis)
-                )
+                    counts, index=frame._get_agg_axis(axis))
 
         return result.astype("int64").__finalize__(self, method="count")
 
-    def _count_level(self, level: Level, axis: int = 0, numeric_only: bool = False):
+    def _count_level(self,
+                     level: Level,
+                     axis: int = 0,
+                     numeric_only: bool = False):
         if numeric_only:
             frame = self._get_numeric_data()
         else:
@@ -10068,12 +10147,19 @@ NaN 12.3   33.0
         level_name = count_axis._names[level]
         level_index = count_axis.levels[level]._rename(name=level_name)
         level_codes = ensure_platform_int(count_axis.codes[level])
-        counts = lib.count_level_2d(mask, level_codes, len(level_index), axis=axis)
+        counts = lib.count_level_2d(mask,
+                                    level_codes,
+                                    len(level_index),
+                                    axis=axis)
 
         if axis == 1:
-            result = self._constructor(counts, index=agg_axis, columns=level_index)
+            result = self._constructor(counts,
+                                       index=agg_axis,
+                                       columns=level_index)
         else:
-            result = self._constructor(counts, index=level_index, columns=agg_axis)
+            result = self._constructor(counts,
+                                       index=level_index,
+                                       columns=agg_axis)
 
         return result
 
@@ -10127,8 +10213,7 @@ NaN 12.3   33.0
         def blk_func(values, axis=1):
             if isinstance(values, ExtensionArray):
                 if not is_1d_only_ea_dtype(values.dtype) and not isinstance(
-                    self._mgr, ArrayManager
-                ):
+                        self._mgr, ArrayManager):
                     return values._reduce(name, axis=1, skipna=skipna, **kwds)
                 return values._reduce(name, skipna=skipna, **kwds)
             else:
@@ -10360,9 +10445,11 @@ NaN 12.3   33.0
         """
         axis = self._get_axis_number(axis)
 
-        res = self._reduce(
-            nanops.nanargmin, "argmin", axis=axis, skipna=skipna, numeric_only=False
-        )
+        res = self._reduce(nanops.nanargmin,
+                           "argmin",
+                           axis=axis,
+                           skipna=skipna,
+                           numeric_only=False)
         indices = res._values
 
         # indices will always be np.ndarray since axis is not None and
@@ -10437,9 +10524,11 @@ NaN 12.3   33.0
         """
         axis = self._get_axis_number(axis)
 
-        res = self._reduce(
-            nanops.nanargmax, "argmax", axis=axis, skipna=skipna, numeric_only=False
-        )
+        res = self._reduce(nanops.nanargmax,
+                           "argmax",
+                           axis=axis,
+                           skipna=skipna,
+                           numeric_only=False)
         indices = res._values
 
         # indices will always be np.ndarray since axis is not None and
@@ -10462,9 +10551,10 @@ NaN 12.3   33.0
         else:
             raise ValueError(f"Axis must be 0 or 1 (got {repr(axis_num)})")
 
-    def mode(
-        self, axis: Axis = 0, numeric_only: bool = False, dropna: bool = True
-    ) -> DataFrame:
+    def mode(self,
+             axis: Axis = 0,
+             numeric_only: bool = False,
+             dropna: bool = True) -> DataFrame:
         """
         Get the mode(s) of each element along the selected axis.
 
@@ -10631,9 +10721,10 @@ NaN 12.3   33.0
 
         if not is_list_like(q):
             # BlockManager.quantile expects listlike, so we wrap and unwrap here
-            res_df = self.quantile(
-                [q], axis=axis, numeric_only=numeric_only, interpolation=interpolation
-            )
+            res_df = self.quantile([q],
+                                   axis=axis,
+                                   numeric_only=numeric_only,
+                                   interpolation=interpolation)
             res = res_df.iloc[0]
             if axis == 1 and len(self) == 0:
                 # GH#41544 try to get an appropriate dtype
@@ -10662,7 +10753,10 @@ NaN 12.3   33.0
             if is_list_like(q):
                 res = self._constructor([], index=q, columns=cols, dtype=dtype)
                 return res.__finalize__(self, method="quantile")
-            return self._constructor_sliced([], index=cols, name=q, dtype=dtype)
+            return self._constructor_sliced([],
+                                            index=cols,
+                                            name=q,
+                                            dtype=dtype)
 
         res = data._mgr.quantile(qs=q, axis=1, interpolation=interpolation)
 
@@ -10755,9 +10849,10 @@ NaN 12.3   33.0
         setattr(new_obj, axis_name, new_ax)
         return new_obj
 
-    def to_period(
-        self, freq: Frequency | None = None, axis: Axis = 0, copy: bool = True
-    ) -> DataFrame:
+    def to_period(self,
+                  freq: Frequency | None = None,
+                  axis: Axis = 0,
+                  copy: bool = True) -> DataFrame:
         """
         Convert DataFrame from DatetimeIndex to PeriodIndex.
 
@@ -10885,10 +10980,8 @@ NaN 12.3   33.0
 
             values = collections.defaultdict(list, values)
             result = concat(
-                (
-                    self.iloc[:, [i]].isin(values[col])
-                    for i, col in enumerate(self.columns)
-                ),
+                (self.iloc[:, [i]].isin(values[col])
+                 for i, col in enumerate(self.columns)),
                 axis=1,
             )
         elif isinstance(values, Series):
@@ -10904,10 +10997,10 @@ NaN 12.3   33.0
                 raise TypeError(
                     "only list-like or dict-like objects are allowed "
                     "to be passed to DataFrame.isin(), "
-                    f"you passed a '{type(values).__name__}'"
-                )
+                    f"you passed a '{type(values).__name__}'")
             result = self._constructor(
-                algorithms.isin(self.values.ravel(), values).reshape(self.shape),
+                algorithms.isin(self.values.ravel(),
+                                values).reshape(self.shape),
                 self.index,
                 self.columns,
             )
@@ -10926,11 +11019,9 @@ NaN 12.3   33.0
     _info_axis_name = "columns"
 
     index: Index = properties.AxisProperty(
-        axis=1, doc="The index (row labels) of the DataFrame."
-    )
+        axis=1, doc="The index (row labels) of the DataFrame.")
     columns: Index = properties.AxisProperty(
-        axis=0, doc="The column labels of the DataFrame."
-    )
+        axis=0, doc="The column labels of the DataFrame.")
 
     @property
     def _AXIS_NUMBERS(self) -> dict[str, int]:
@@ -11067,9 +11158,8 @@ NaN 12.3   33.0
     ) -> DataFrame | None:
         return super().bfill(axis, inplace, limit, downcast)
 
-    @deprecate_nonkeyword_arguments(
-        version=None, allowed_args=["self", "lower", "upper"]
-    )
+    @deprecate_nonkeyword_arguments(version=None,
+                                    allowed_args=["self", "lower", "upper"])
     def clip(
         self: DataFrame,
         lower=None,
@@ -11081,7 +11171,8 @@ NaN 12.3   33.0
     ) -> DataFrame | None:
         return super().clip(lower, upper, axis, inplace, *args, **kwargs)
 
-    @deprecate_nonkeyword_arguments(version=None, allowed_args=["self", "method"])
+    @deprecate_nonkeyword_arguments(version=None,
+                                    allowed_args=["self", "method"])
     def interpolate(
         self: DataFrame,
         method: str = "linear",
@@ -11104,9 +11195,8 @@ NaN 12.3   33.0
             **kwargs,
         )
 
-    @deprecate_nonkeyword_arguments(
-        version=None, allowed_args=["self", "cond", "other"]
-    )
+    @deprecate_nonkeyword_arguments(version=None,
+                                    allowed_args=["self", "cond", "other"])
     def where(
         self,
         cond,
@@ -11117,11 +11207,11 @@ NaN 12.3   33.0
         errors="raise",
         try_cast=lib.no_default,
     ):
-        return super().where(cond, other, inplace, axis, level, errors, try_cast)
+        return super().where(cond, other, inplace, axis, level, errors,
+                             try_cast)
 
-    @deprecate_nonkeyword_arguments(
-        version=None, allowed_args=["self", "cond", "other"]
-    )
+    @deprecate_nonkeyword_arguments(version=None,
+                                    allowed_args=["self", "cond", "other"])
     def mask(
         self,
         cond,
@@ -11132,7 +11222,8 @@ NaN 12.3   33.0
         errors="raise",
         try_cast=lib.no_default,
     ):
-        return super().mask(cond, other, inplace, axis, level, errors, try_cast)
+        return super().mask(cond, other, inplace, axis, level, errors,
+                            try_cast)
 
 
 DataFrame._add_numeric_operations()
@@ -11164,6 +11255,5 @@ def _reindex_for_setitem(value: DataFrame | Series, index: Index) -> ArrayLike:
             raise err
 
         raise TypeError(
-            "incompatible index of inserted column with frame index"
-        ) from err
+            "incompatible index of inserted column with frame index") from err
     return reindexed_value

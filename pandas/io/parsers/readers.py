@@ -70,8 +70,7 @@ from pandas.io.parsers.python_parser import (
     PythonParser,
 )
 
-_doc_read_csv_and_table = (
-    r"""
+_doc_read_csv_and_table = (r"""
 {summary}
 
 Also supports optionally iterating or breaking of the file
@@ -200,9 +199,8 @@ nrows : int, optional
 na_values : scalar, str, list-like, or dict, optional
     Additional strings to recognize as NA/NaN. If dict passed, specific
     per-column NA values.  By default the following values are interpreted as
-    NaN: '"""
-    + fill("', '".join(sorted(STR_NA_VALUES)), 70, subsequent_indent="    ")
-    + """'.
+    NaN: '""" + fill(
+    "', '".join(sorted(STR_NA_VALUES)), 70, subsequent_indent="    ") + """'.
 keep_default_na : bool, default True
     Whether or not to include the default NaN values when parsing the data.
     Depending on whether `na_values` is passed in, the behavior is as follows:
@@ -427,9 +425,7 @@ read_fwf : Read a table of fixed-width formatted lines into DataFrame.
 Examples
 --------
 >>> pd.{func_name}('data.csv')  # doctest: +SKIP
-"""
-)
-
+""")
 
 _c_parser_defaults = {
     "delim_whitespace": False,
@@ -475,14 +471,16 @@ class _DeprecationConfig(NamedTuple):
 
 
 _deprecated_defaults: dict[str, _DeprecationConfig] = {
-    "error_bad_lines": _DeprecationConfig(None, "Use on_bad_lines in the future."),
-    "warn_bad_lines": _DeprecationConfig(None, "Use on_bad_lines in the future."),
-    "squeeze": _DeprecationConfig(
-        None, 'Append .squeeze("columns") to the call to squeeze.'
-    ),
-    "prefix": _DeprecationConfig(
-        None, "Use a list comprehension on the column names in the future."
-    ),
+    "error_bad_lines":
+    _DeprecationConfig(None, "Use on_bad_lines in the future."),
+    "warn_bad_lines":
+    _DeprecationConfig(None, "Use on_bad_lines in the future."),
+    "squeeze":
+    _DeprecationConfig(None,
+                       'Append .squeeze("columns") to the call to squeeze.'),
+    "prefix":
+    _DeprecationConfig(
+        None, "Use a list comprehension on the column names in the future."),
 }
 
 
@@ -533,15 +531,13 @@ def _validate_names(names):
     if names is not None:
         if len(names) != len(set(names)):
             raise ValueError("Duplicate names are not allowed.")
-        if not (
-            is_list_like(names, allow_sets=False) or isinstance(names, abc.KeysView)
-        ):
+        if not (is_list_like(names, allow_sets=False)
+                or isinstance(names, abc.KeysView)):
             raise ValueError("Names should be an ordered collection.")
 
 
-def _read(
-    filepath_or_buffer: FilePath | ReadCsvBuffer[bytes] | ReadCsvBuffer[str], kwds
-) -> DataFrame | TextFileReader:
+def _read(filepath_or_buffer: FilePath | ReadCsvBuffer[bytes]
+          | ReadCsvBuffer[str], kwds) -> DataFrame | TextFileReader:
     """Generic reader of line files."""
     # if we pass a date_parser and parse_dates=False, we should not parse the
     # dates GH#44366
@@ -822,9 +818,9 @@ def read_csv(
     ...
 
 
-@deprecate_nonkeyword_arguments(
-    version=None, allowed_args=["filepath_or_buffer"], stacklevel=3
-)
+@deprecate_nonkeyword_arguments(version=None,
+                                allowed_args=["filepath_or_buffer"],
+                                stacklevel=3)
 @Appender(
     _doc_read_csv_and_table.format(
         func_name="read_csv",
@@ -832,8 +828,7 @@ def read_csv(
         _default_sep="','",
         storage_options=_shared_docs["storage_options"],
         decompression_options=_shared_docs["decompression_options"],
-    )
-)
+    ))
 def read_csv(
     filepath_or_buffer: FilePath | ReadCsvBuffer[bytes] | ReadCsvBuffer[str],
     sep: str | None | lib.NoDefault = lib.no_default,
@@ -1161,9 +1156,9 @@ def read_table(
     ...
 
 
-@deprecate_nonkeyword_arguments(
-    version=None, allowed_args=["filepath_or_buffer"], stacklevel=3
-)
+@deprecate_nonkeyword_arguments(version=None,
+                                allowed_args=["filepath_or_buffer"],
+                                stacklevel=3)
 @Appender(
     _doc_read_csv_and_table.format(
         func_name="read_table",
@@ -1171,8 +1166,7 @@ def read_table(
         _default_sep=r"'\\t' (tab-stop)",
         storage_options=_shared_docs["storage_options"],
         decompression_options=_shared_docs["decompression_options"],
-    )
-)
+    ))
 def read_table(
     filepath_or_buffer: FilePath | ReadCsvBuffer[bytes] | ReadCsvBuffer[str],
     sep: str | None | lib.NoDefault = lib.no_default,
@@ -1260,9 +1254,9 @@ def read_table(
     return _read(filepath_or_buffer, kwds)
 
 
-@deprecate_nonkeyword_arguments(
-    version=None, allowed_args=["filepath_or_buffer"], stacklevel=2
-)
+@deprecate_nonkeyword_arguments(version=None,
+                                allowed_args=["filepath_or_buffer"],
+                                stacklevel=2)
 def read_fwf(
     filepath_or_buffer: FilePath | ReadCsvBuffer[bytes] | ReadCsvBuffer[str],
     colspecs: Sequence[tuple[int, int]] | str | None = "infer",
@@ -1321,7 +1315,8 @@ def read_fwf(
     if colspecs is None and widths is None:
         raise ValueError("Must specify either colspecs or widths")
     elif colspecs not in (None, "infer") and widths is not None:
-        raise ValueError("You must specify only one of 'widths' and 'colspecs'")
+        raise ValueError(
+            "You must specify only one of 'widths' and 'colspecs'")
 
     # Compute 'colspecs' from 'widths', if specified.
     if widths is not None:
@@ -1349,7 +1344,8 @@ def read_fwf(
                     else:
                         len_index = len(index_col)
             if len(names) + len_index != len(colspecs):
-                raise ValueError("Length of colspecs must match length of names")
+                raise ValueError(
+                    "Length of colspecs must match length of names")
 
     kwds["colspecs"] = colspecs
     kwds["infer_nrows"] = infer_nrows
@@ -1428,29 +1424,23 @@ class TextFileReader(abc.Iterator):
             value = kwds.get(argname, default)
 
             # see gh-12935
-            if (
-                engine == "pyarrow"
-                and argname in _pyarrow_unsupported
-                and value != default
-                and value != getattr(value, "value", default)
-            ):
-                if (
-                    argname == "on_bad_lines"
-                    and kwds.get("error_bad_lines") is not None
-                ):
+            if (engine == "pyarrow" and argname in _pyarrow_unsupported
+                    and value != default
+                    and value != getattr(value, "value", default)):
+                if (argname == "on_bad_lines"
+                        and kwds.get("error_bad_lines") is not None):
                     argname = "error_bad_lines"
-                elif (
-                    argname == "on_bad_lines" and kwds.get("warn_bad_lines") is not None
-                ):
+                elif (argname == "on_bad_lines"
+                      and kwds.get("warn_bad_lines") is not None):
                     argname = "warn_bad_lines"
 
                 raise ValueError(
                     f"The {repr(argname)} option is not supported with the "
-                    f"'pyarrow' engine"
-                )
+                    f"'pyarrow' engine")
             elif argname == "mangle_dupe_cols" and value is False:
                 # GH12935
-                raise ValueError("Setting mangle_dupe_cols=False is not supported yet")
+                raise ValueError(
+                    "Setting mangle_dupe_cols=False is not supported yet")
             else:
                 options[argname] = value
 
@@ -1461,22 +1451,17 @@ class TextFileReader(abc.Iterator):
                 if engine != "c" and value != default:
                     if "python" in engine and argname not in _python_unsupported:
                         pass
-                    elif (
-                        value
-                        == _deprecated_defaults.get(
-                            argname, _DeprecationConfig(default, None)
-                        ).default_value
-                    ):
+                    elif (value == _deprecated_defaults.get(
+                            argname, _DeprecationConfig(default,
+                                                        None)).default_value):
                         pass
                     else:
                         raise ValueError(
                             f"The {repr(argname)} option is not supported with the "
-                            f"{repr(engine)} engine"
-                        )
+                            f"{repr(engine)} engine")
             else:
                 value = _deprecated_defaults.get(
-                    argname, _DeprecationConfig(default, None)
-                ).default_value
+                    argname, _DeprecationConfig(default, None)).default_value
             options[argname] = value
 
         if engine == "python-fwf":
@@ -1493,12 +1478,10 @@ class TextFileReader(abc.Iterator):
             # when iterating through such an object, meaning it
             # needs to have that attribute
             raise ValueError(
-                "The 'python' engine cannot iterate through this file buffer."
-            )
+                "The 'python' engine cannot iterate through this file buffer.")
 
-    def _clean_options(
-        self, options: dict[str, Any], engine: CSVEngine
-    ) -> tuple[dict[str, Any], CSVEngine]:
+    def _clean_options(self, options: dict[str, Any],
+                       engine: CSVEngine) -> tuple[dict[str, Any], CSVEngine]:
         result = options.copy()
 
         fallback_reason = None
@@ -1514,10 +1497,8 @@ class TextFileReader(abc.Iterator):
 
         if sep is None and not delim_whitespace:
             if engine in ("c", "pyarrow"):
-                fallback_reason = (
-                    f"the '{engine}' engine does not support "
-                    "sep=None with delim_whitespace=False"
-                )
+                fallback_reason = (f"the '{engine}' engine does not support "
+                                   "sep=None with delim_whitespace=False")
                 engine = "python"
         elif sep is not None and len(sep) > 1:
             if engine == "c" and sep == r"\s+":
@@ -1528,8 +1509,7 @@ class TextFileReader(abc.Iterator):
                 fallback_reason = (
                     f"the '{engine}' engine does not support "
                     "regex separators (separators > 1 char and "
-                    r"different from '\s+' are interpreted as regex)"
-                )
+                    r"different from '\s+' are interpreted as regex)")
                 engine = "python"
         elif delim_whitespace:
             if "python" in engine:
@@ -1546,17 +1526,13 @@ class TextFileReader(abc.Iterator):
                 fallback_reason = (
                     f"the separator encoded in {encoding} "
                     f"is > 1 char long, and the '{engine}' engine "
-                    "does not support such separators"
-                )
+                    "does not support such separators")
                 engine = "python"
 
         quotechar = options["quotechar"]
         if quotechar is not None and isinstance(quotechar, (str, bytes)):
-            if (
-                len(quotechar) == 1
-                and ord(quotechar) > 127
-                and engine not in ("python", "python-fwf")
-            ):
+            if (len(quotechar) == 1 and ord(quotechar) > 127
+                    and engine not in ("python", "python-fwf")):
                 fallback_reason = (
                     "ord(quotechar) > 127, meaning the "
                     "quotechar is larger than one byte, "
@@ -1583,11 +1559,9 @@ class TextFileReader(abc.Iterator):
 
         if fallback_reason:
             warnings.warn(
-                (
-                    "Falling back to the 'python' engine because "
-                    f"{fallback_reason}; you can avoid this warning by specifying "
-                    "engine='python'."
-                ),
+                ("Falling back to the 'python' engine because "
+                 f"{fallback_reason}; you can avoid this warning by specifying "
+                 "engine='python'."),
                 ParserWarning,
                 stacklevel=find_stack_level(),
             )
@@ -1604,11 +1578,11 @@ class TextFileReader(abc.Iterator):
             parser_default = _c_parser_defaults.get(arg, parser_defaults[arg])
             depr_default = _deprecated_defaults[arg]
             if result.get(arg, depr_default) != depr_default.default_value:
-                msg = (
-                    f"The {arg} argument has been deprecated and will be "
-                    f"removed in a future version. {depr_default.msg}\n\n"
-                )
-                warnings.warn(msg, FutureWarning, stacklevel=find_stack_level())
+                msg = (f"The {arg} argument has been deprecated and will be "
+                       f"removed in a future version. {depr_default.msg}\n\n")
+                warnings.warn(msg,
+                              FutureWarning,
+                              stacklevel=find_stack_level())
             else:
                 result[arg] = parser_default
 
@@ -1624,10 +1598,8 @@ class TextFileReader(abc.Iterator):
         # type conversion-related
         if converters is not None:
             if not isinstance(converters, dict):
-                raise TypeError(
-                    "Type converters must be a dict or subclass, "
-                    f"input was a {type(converters).__name__}"
-                )
+                raise TypeError("Type converters must be a dict or subclass, "
+                                f"input was a {type(converters).__name__}")
         else:
             converters = {}
 
@@ -1642,8 +1614,7 @@ class TextFileReader(abc.Iterator):
                 # pyarrow expects skiprows to be passed as an integer
                 raise ValueError(
                     "skiprows argument must be an integer when using "
-                    "engine='pyarrow'"
-                )
+                    "engine='pyarrow'")
         else:
             if is_integer(skiprows):
                 skiprows = list(range(skiprows))
@@ -1661,7 +1632,8 @@ class TextFileReader(abc.Iterator):
         # Default for squeeze is none since we need to check
         # if user sets it. We then set to False to preserve
         # previous behavior.
-        result["squeeze"] = False if options["squeeze"] is None else options["squeeze"]
+        result["squeeze"] = False if options["squeeze"] is None else options[
+            "squeeze"]
 
         return result, engine
 
@@ -1737,8 +1709,7 @@ class TextFileReader(abc.Iterator):
                     columns,
                     col_dict,
                 ) = self._engine.read(  # type: ignore[attr-defined]
-                    nrows
-                )
+                    nrows)
             except Exception:
                 self.close()
                 raise
@@ -1992,20 +1963,17 @@ def _refine_defaults_read(
     # the comparison to dialect values by checking if default values
     # for BOTH "delimiter" and "sep" were provided.
     if dialect is not None:
-        kwds["sep_override"] = delimiter is None and (
-            sep is lib.no_default or sep == delim_default
-        )
+        kwds["sep_override"] = delimiter is None and (sep is lib.no_default
+                                                      or sep == delim_default)
 
     if delimiter and (sep is not lib.no_default):
-        raise ValueError("Specified a sep and a delimiter; you can only specify one.")
+        raise ValueError(
+            "Specified a sep and a delimiter; you can only specify one.")
 
-    if (
-        names is not None
-        and names is not lib.no_default
-        and prefix is not None
-        and prefix is not lib.no_default
-    ):
-        raise ValueError("Specified named and prefix; you can only specify one.")
+    if (names is not None and names is not lib.no_default
+            and prefix is not None and prefix is not lib.no_default):
+        raise ValueError(
+            "Specified named and prefix; you can only specify one.")
 
     kwds["names"] = None if names is lib.no_default else names
     kwds["prefix"] = None if prefix is lib.no_default else prefix
@@ -2015,17 +1983,14 @@ def _refine_defaults_read(
         delimiter = sep
 
     if delim_whitespace and (delimiter is not lib.no_default):
-        raise ValueError(
-            "Specified a delimiter with both sep and "
-            "delim_whitespace=True; you can only specify one."
-        )
+        raise ValueError("Specified a delimiter with both sep and "
+                         "delim_whitespace=True; you can only specify one.")
 
     if delimiter == "\n":
         raise ValueError(
             r"Specified \n as separator or delimiter. This forces the python engine "
             "which does not accept a line terminator. Hence it is not allowed to use "
-            "the line terminator as separator.",
-        )
+            "the line terminator as separator.", )
 
     if delimiter is lib.no_default:
         # assign default separator value
@@ -2048,8 +2013,7 @@ def _refine_defaults_read(
         if error_bad_lines is not None or warn_bad_lines is not None:
             raise ValueError(
                 "Both on_bad_lines and error_bad_lines/warn_bad_lines are set. "
-                "Please only set on_bad_lines."
-            )
+                "Please only set on_bad_lines.")
         if on_bad_lines == "error":
             kwds["on_bad_lines"] = ParserBase.BadLineHandleMethod.ERROR
         elif on_bad_lines == "warn":
@@ -2063,7 +2027,8 @@ def _refine_defaults_read(
                 )
             kwds["on_bad_lines"] = on_bad_lines
         else:
-            raise ValueError(f"Argument {on_bad_lines} is invalid for on_bad_lines")
+            raise ValueError(
+                f"Argument {on_bad_lines} is invalid for on_bad_lines")
     else:
         if error_bad_lines is not None:
             # Must check is_bool, because other stuff(e.g. non-empty lists) eval to true
@@ -2077,9 +2042,11 @@ def _refine_defaults_read(
                     # None doesn't work because backwards-compatibility reasons
                     validate_bool_kwarg(warn_bad_lines, "warn_bad_lines")
                     if warn_bad_lines:
-                        kwds["on_bad_lines"] = ParserBase.BadLineHandleMethod.WARN
+                        kwds[
+                            "on_bad_lines"] = ParserBase.BadLineHandleMethod.WARN
                     else:
-                        kwds["on_bad_lines"] = ParserBase.BadLineHandleMethod.SKIP
+                        kwds[
+                            "on_bad_lines"] = ParserBase.BadLineHandleMethod.SKIP
                 else:
                     # Backwards compat, when only error_bad_lines = false, we warn
                     kwds["on_bad_lines"] = ParserBase.BadLineHandleMethod.WARN
@@ -2168,11 +2135,9 @@ def _merge_with_dialect_properties(
         # Don't warn if the default parameter was passed in,
         # even if it conflicts with the dialect (gh-23761).
         if provided not in (parser_default, dialect_val):
-            msg = (
-                f"Conflicting values for '{param}': '{provided}' was "
-                f"provided, but the dialect specifies '{dialect_val}'. "
-                "Using the dialect-specified value."
-            )
+            msg = (f"Conflicting values for '{param}': '{provided}' was "
+                   f"provided, but the dialect specifies '{dialect_val}'. "
+                   "Using the dialect-specified value.")
 
             # Annoying corner case for not warning about
             # conflicts between dialect and delimiter parameter.
@@ -2181,9 +2146,9 @@ def _merge_with_dialect_properties(
                 conflict_msgs.append(msg)
 
         if conflict_msgs:
-            warnings.warn(
-                "\n\n".join(conflict_msgs), ParserWarning, stacklevel=find_stack_level()
-            )
+            warnings.warn("\n\n".join(conflict_msgs),
+                          ParserWarning,
+                          stacklevel=find_stack_level())
         kwds[param] = dialect_val
     return kwds
 

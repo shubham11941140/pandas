@@ -165,15 +165,10 @@ def infer_freq(index, warn: bool = True) -> str | None:
 
     if isinstance(index, ABCSeries):
         values = index._values
-        if not (
-            is_datetime64_dtype(values)
-            or is_timedelta64_dtype(values)
-            or values.dtype == object
-        ):
-            raise TypeError(
-                "cannot infer freq from a non-convertible dtype "
-                f"on a Series of {index.dtype}"
-            )
+        if not (is_datetime64_dtype(values) or is_timedelta64_dtype(values)
+                or values.dtype == object):
+            raise TypeError("cannot infer freq from a non-convertible dtype "
+                            f"on a Series of {index.dtype}")
         index = values
 
     inferer: _FrequencyInferer
@@ -181,10 +176,8 @@ def infer_freq(index, warn: bool = True) -> str | None:
     if not hasattr(index, "dtype"):
         pass
     elif is_period_dtype(index.dtype):
-        raise TypeError(
-            "PeriodIndex given. Check the `freq` attribute "
-            "instead of using infer_freq."
-        )
+        raise TypeError("PeriodIndex given. Check the `freq` attribute "
+                        "instead of using infer_freq.")
     elif is_timedelta64_dtype(index.dtype):
         # Allow TimedeltaIndex and TimedeltaArray
         inferer = _TimedeltaFrequencyInferer(index, warn=warn)
@@ -218,8 +211,7 @@ class _FrequencyInferer:
         if hasattr(index, "tz"):
             if index.tz is not None:
                 self.i8values = tzconversion.tz_convert_from_utc(
-                    self.i8values, index.tz
-                )
+                    self.i8values, index.tz)
 
         if warn is not True:
             warnings.warn(
@@ -233,9 +225,8 @@ class _FrequencyInferer:
         if len(index) < 3:
             raise ValueError("Need at least 3 dates to infer frequency")
 
-        self.is_monotonic = (
-            self.index._is_monotonic_increasing or self.index._is_monotonic_decreasing
-        )
+        self.is_monotonic = (self.index._is_monotonic_increasing
+                             or self.index._is_monotonic_decreasing)
 
     @cache_readonly
     def deltas(self) -> npt.NDArray[np.int64]:
@@ -409,11 +400,8 @@ class _FrequencyInferer:
         weekdays = np.mod(first_weekday + np.cumsum(shifts), 7)
 
         return bool(
-            np.all(
-                ((weekdays == 0) & (shifts == 3))
-                | ((weekdays > 0) & (weekdays <= 4) & (shifts == 1))
-            )
-        )
+            np.all(((weekdays == 0) & (shifts == 3))
+                   | ((weekdays > 0) & (weekdays <= 4) & (shifts == 1))))
 
     def _get_wom_rule(self) -> str | None:
         # FIXME: dont leave commented-out
@@ -440,6 +428,7 @@ class _FrequencyInferer:
 
 
 class _TimedeltaFrequencyInferer(_FrequencyInferer):
+
     def _infer_daily_rule(self):
         if self.is_unique:
             return self._get_daily_rule()
@@ -486,9 +475,8 @@ def is_subperiod(source, target) -> bool:
 
     if _is_annual(target):
         if _is_quarterly(source):
-            return _quarter_months_conform(
-                get_rule_month(source), get_rule_month(target)
-            )
+            return _quarter_months_conform(get_rule_month(source),
+                                           get_rule_month(target))
         return source in {"D", "C", "B", "M", "H", "T", "S", "L", "U", "N"}
     elif _is_quarterly(target):
         return source in {"D", "C", "B", "M", "H", "T", "S", "L", "U", "N"}

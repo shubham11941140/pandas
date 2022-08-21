@@ -36,7 +36,11 @@ def create_tempfile(path):
 
 # contextmanager to ensure the file cleanup
 @contextmanager
-def ensure_clean_store(path, mode="a", complevel=None, complib=None, fletcher32=False):
+def ensure_clean_store(path,
+                       mode="a",
+                       complevel=None,
+                       complib=None,
+                       fletcher32=False):
 
     try:
 
@@ -44,9 +48,11 @@ def ensure_clean_store(path, mode="a", complevel=None, complib=None, fletcher32=
         if not len(os.path.dirname(path)):
             path = create_tempfile(path)
 
-        store = HDFStore(
-            path, mode=mode, complevel=complevel, complib=complib, fletcher32=False
-        )
+        store = HDFStore(path,
+                         mode=mode,
+                         complevel=complevel,
+                         complib=complib,
+                         fletcher32=False)
         yield store
     finally:
         safe_close(store)
