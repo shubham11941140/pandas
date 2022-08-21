@@ -269,7 +269,7 @@ class ArrowStringArray(
         item = check_array_indexer(self, item)
 
         if isinstance(item, np.ndarray):
-            if not len(item):
+            if not item:
                 return type(self)(pa.chunked_array([], type=pa.string()))
             elif is_integer_dtype(item.dtype):
                 return self.take(item)
@@ -516,7 +516,7 @@ class ArrowStringArray(
 
         # for an empty value_set pyarrow 3.0.0 segfaults and pyarrow 2.0.0 returns True
         # for null values, so we short-circuit to return all False array.
-        if not len(value_set):
+        if not value_set:
             return np.zeros(len(self), dtype=bool)
 
         kwargs = {}

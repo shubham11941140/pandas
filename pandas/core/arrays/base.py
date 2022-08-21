@@ -846,7 +846,7 @@ class ExtensionArray:
         """
         # Note: this implementation assumes that `self.dtype.na_value` can be
         # stored in an instance of your ExtensionArray with `self.dtype`.
-        if not len(self) or periods == 0:
+        if not self or periods == 0:
             return self.copy()
 
         if isna(fill_value):

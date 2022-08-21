@@ -793,7 +793,7 @@ class SparseArray(OpsMixin, PandasObject, ExtensionArray):
 
     def shift(self: SparseArrayT, periods: int = 1, fill_value=None) -> SparseArrayT:
 
-        if not len(self) or periods == 0:
+        if not self or periods == 0:
             return self.copy()
 
         if isna(fill_value):
@@ -831,7 +831,7 @@ class SparseArray(OpsMixin, PandasObject, ExtensionArray):
             return -1
 
         indices = self.sp_index.indices
-        if not len(indices) or indices[0] > 0:
+        if not indices or indices[0] > 0:
             return 0
 
         diff = indices[1:] - indices[:-1]
